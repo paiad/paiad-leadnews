@@ -9,12 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>paiad-leadnews-test</artifactId>
+    <artifactId>paiad-leadnews-basic</artifactId>
     <packaging>pom</packaging>
-
     <modules>
-        <module>freemarker-demo</module>
-        <module>minio-demo</module>
+        <module>paiad-file-starter</module>
     </modules>
 
     <properties>

@@ -1,4 +1,4 @@
-package com.paiad.model.article;
+package com.paiad.model.article.dtos;
 
 import lombok.Data;
 

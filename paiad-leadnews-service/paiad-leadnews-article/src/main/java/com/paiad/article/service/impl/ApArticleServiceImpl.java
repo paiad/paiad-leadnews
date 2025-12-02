@@ -4,7 +4,8 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.paiad.article.mapper.ApArticleMapper;
 import com.paiad.article.service.ApArticleService;
 import com.paiad.common.constants.ArticleConstants;
-import com.paiad.model.article.ArticleHomeDto;
+import com.paiad.model.article.dtos.ArticleHomeDto;
+
 import com.paiad.model.article.pojos.ApArticle;
 import com.paiad.model.common.dtos.ResponseResult;
 import lombok.extern.slf4j.Slf4j;
@@ -63,5 +64,5 @@ public class ApArticleServiceImpl  extends ServiceImpl<ApArticleMapper, ApArticl
         ResponseResult responseResult = ResponseResult.okResult(apArticles);
         return responseResult;
     }
-
+    
 }

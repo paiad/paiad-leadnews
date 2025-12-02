@@ -2,7 +2,7 @@ package com.paiad.article.controller.v1;
 
 import com.paiad.article.service.ApArticleService;
 import com.paiad.common.constants.ArticleConstants;
-import com.paiad.model.article.ArticleHomeDto;
+import com.paiad.model.article.dtos.ArticleHomeDto;
 import com.paiad.model.common.dtos.ResponseResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;

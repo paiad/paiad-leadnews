@@ -1,9 +1,11 @@
 package com.paiad.article.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.paiad.model.article.ArticleHomeDto;
+import com.paiad.model.article.dtos.ArticleHomeDto;
 import com.paiad.model.article.pojos.ApArticle;
 import com.paiad.model.common.dtos.ResponseResult;
+
+import java.io.IOException;
 
 public interface ApArticleService extends IService<ApArticle> {
 
