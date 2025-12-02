@@ -9,6 +9,7 @@ import com.paiad.model.user.pojos.ApUser;
 import com.paiad.user.mapper.ApUserMapper;
 import com.paiad.user.service.ApUserService;
 import com.paiad.utils.common.AppJwtUtil;
+import com.paiad.utils.common.MD5Utils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -30,38 +31,36 @@ public class ApUserServiceImpl extends ServiceImpl<ApUserMapper, ApUser> impleme
      */
     @Override
     public ResponseResult login(LoginDto dto) {
-        //1.正常登录 用户名和密码
+        // 用户登录
         if(StringUtils.isNotBlank(dto.getPhone()) && StringUtils.isNotBlank(dto.getPassword())){
-            //1.1 根据手机号查询用户信息
-            ApUser dbUser = getOne(Wrappers.<ApUser>lambdaQuery().eq(ApUser::getPhone, dto.getPhone()));
-            if(dbUser == null){
-                return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST,"用户信息不存在");
+            // 通过手机号得到用户
+            ApUser user = getOne(Wrappers.<ApUser>lambdaQuery().eq(ApUser::getPhone, dto.getPhone()));
+            if(user == null){
+                return ResponseResult.errorResult(AppHttpCodeEnum.AP_USER_DATA_NOT_EXIST, "用户信息不存在");
             }
 
-            //1.2 比对密码
-            String salt = dbUser.getSalt();
+            String salt = user.getSalt();
             String password = dto.getPassword();
-            String pswd = DigestUtils.md5DigestAsHex((password + salt).getBytes());
-            if(!pswd.equals(dbUser.getPassword())){
+            String pwd_salt = DigestUtils.md5DigestAsHex((password + salt).getBytes());
+            // 对比密码
+            if(!pwd_salt.equals(user.getPassword())){
                 return ResponseResult.errorResult(AppHttpCodeEnum.LOGIN_PASSWORD_ERROR);
             }
 
-            //1.3 返回数据  jwt  user
-            String token = AppJwtUtil.getToken(dbUser.getId().longValue());
-            Map<String,Object> map = new HashMap<>();
-            map.put("token",token);
-            dbUser.setSalt("");
-            dbUser.setPassword("");
-            map.put("user",dbUser);
+            // 返回 jwt
+            String token = AppJwtUtil.getToken(user.getId().longValue());
+            Map<String, Object> map = new HashMap<>();
+            map.put("token", token);
+            user.setSalt("");
+            user.setSalt("");
+            user.setPassword("");
+            map.put("user",user);
 
             return ResponseResult.okResult(map);
-        }else {
-            //2.游客登录
-            Map<String,Object> map = new HashMap<>();
-            map.put("token",AppJwtUtil.getToken(0L));
+        }else{
+            Map<Object, Object> map = new HashMap<>();
+            map.put("token", 0L);
             return ResponseResult.okResult(map);
         }
-
-
     }
 }
