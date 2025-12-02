@@ -1,6 +1,5 @@
 package com.paiad.file.service.impl;
 
-
 import com.paiad.file.config.MinIOConfig;
 import com.paiad.file.config.MinIOConfigProperties;
 import com.paiad.file.service.FileStorageService;

@@ -1,15 +1,16 @@
 package com.paiad.article.test;
 
-
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.paiad.article.mapper.ApArticleContentMapper;
+import com.paiad.article.mapper.ApArticleMapper;
 import com.paiad.file.service.FileStorageService;
 import com.paiad.model.article.pojos.ApArticle;
 import com.paiad.model.article.pojos.ApArticleContent;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,15 +34,15 @@ public class ArticleFreemarkerTest {
 
 
     @Autowired
-    private com.paiad.article.mapper.ApArticleMapper apArticleMapper;
+    private ApArticleMapper apArticleMapper;
 
     @Autowired
-    private com.paiad.article.mapper.ApArticleContentMapper apArticleContentMapper;
+    private ApArticleContentMapper apArticleContentMapper;
 
     @Test
     public void createStaticUrlTest() throws Exception {
         //1.获取文章内容
-        ApArticleContent apArticleContent = apArticleContentMapper.selectOne(Wrappers.<ApArticleContent>lambdaQuery().eq(ApArticleContent::getArticleId, 1404705243362627586L));
+        ApArticleContent apArticleContent = apArticleContentMapper.selectOne(Wrappers.<ApArticleContent>lambdaQuery().eq(ApArticleContent::getArticleId, 1383827787629252610L));
         if(apArticleContent != null && StringUtils.isNotBlank(apArticleContent.getContent())){
             //2.文章内容通过freemarker生成html文件
             StringWriter out = new StringWriter();
