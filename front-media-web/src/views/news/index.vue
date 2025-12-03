@@ -2,9 +2,6 @@
   <div class="page-container">
     <div class="page-header">
       <h1 class="page-title">内容管理</h1>
-      <el-button type="primary" class="action-button" @click="$router.push('/layout/news/publish')">
-        <el-icon class="mr-2"><Plus /></el-icon> 发布文章
-      </el-button>
     </div>
 
     <div class="filter-card">
@@ -33,14 +30,19 @@
           </el-form-item>
           <el-form-item label="日期" class="filter-item">
             <el-date-picker
-              v-model="dateRange"
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
+              v-model="queryParams.beginPubDate"
+              type="datetime"
+              placeholder="开始时间"
               value-format="YYYY-MM-DDTHH:mm:ss"
-              @change="handleDateChange"
-              style="width: 340px;"
+              style="width: 200px;"
+            />
+            <span class="date-separator">-</span>
+            <el-date-picker
+              v-model="queryParams.endPubDate"
+              type="datetime"
+              placeholder="结束时间"
+              value-format="YYYY-MM-DDTHH:mm:ss"
+              style="width: 200px;"
             />
           </el-form-item>
           <el-form-item class="filter-item">
@@ -110,7 +112,6 @@ const loading = ref(false)
 const newsList = ref<any[]>([])
 const total = ref(0)
 const channels = ref<any[]>([])
-const dateRange = ref([])
 const fileHost = ref('')
 
 const queryParams = reactive({
@@ -154,16 +155,6 @@ const getImageUrl = (url: string) => {
   if (!url) return ''
   if (url.startsWith('http')) return url
   return (fileHost.value || '') + url
-}
-
-const handleDateChange = (val: any) => {
-  if (val) {
-    queryParams.beginPubDate = val[0]
-    queryParams.endPubDate = val[1]
-  } else {
-    queryParams.beginPubDate = undefined
-    queryParams.endPubDate = undefined
-  }
 }
 
 const loadChannels = async () => {
@@ -303,29 +294,32 @@ onMounted(() => {
     }
     
     .status-radio-group {
-      display: flex;
-      gap: 12px;
-      
       :deep(.el-radio-button__inner) {
-        padding: 6px 16px;
-        border-radius: 20px !important;
-        border: 1px solid transparent;
-        background-color: transparent;
-        color: #86868b;
+        padding: 8px 20px;
+        border-radius: 6px;
+        border: 1px solid #e5e5e7;
+        background-color: #f5f5f7;
+        color: #1d1d1f;
         transition: all 0.2s ease;
-        box-shadow: none !important;
-        font-weight: 500;
+      }
+      
+      :deep(.el-radio-button:first-child .el-radio-button__inner) {
+        border-radius: 6px;
+      }
+      
+      :deep(.el-radio-button:last-child .el-radio-button__inner) {
+        border-radius: 6px;
       }
       
       :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-        background-color: #f5f5f7;
-        color: #1d1d1f;
-        border-color: #e5e5e7;
-        font-weight: 600;
+        background-color: #000000;
+        border-color: #000000;
+        color: white;
+        box-shadow: none;
       }
       
       :deep(.el-radio-button__inner:hover) {
-        color: #1d1d1f;
+        background-color: #e5e5e7;
       }
     }
   }
@@ -342,6 +336,11 @@ onMounted(() => {
       :deep(.el-form-item__label) {
         width: auto;
         margin-right: 8px;
+      }
+
+      .date-separator {
+        margin: 0 8px;
+        color: #86868b;
       }
     }
   }

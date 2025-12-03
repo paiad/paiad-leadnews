@@ -105,10 +105,10 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
 
-        //1.保存或修改文?
+        //1.保存或修改文章
 
         WmNews wmNews = new WmNews();
-        //属性拷?属性名词和类型相同才能拷贝
+        //属性拷贝，属性名词和类型相同才能拷贝
         BeanUtils.copyProperties(dto,wmNews);
         //封面图片  list---> string
         if(dto.getImages() != null && dto.getImages().size() > 0){
@@ -123,13 +123,13 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
         saveOrUpdateWmNews(wmNews);
 
-        //2.判断是否为草? 如果为草稿结束当前方?
+        //2.判断是否为草稿  如果为草稿结束当前
         if(dto.getStatus().equals(WmNews.Status.NORMAL.getCode())){
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         }
 
-        //3.不是草稿，保存文章内容图片与素材的关?
-        //获取到文章内容中的图片信?
+        //3.不是草稿，保存文章内容图片与素材的关系
+        //获取到文章内容中的图片信息
         List<String> materials =  ectractUrlInfo(dto.getContent());
         saveRelativeInfoForContent(materials,wmNews.getId());
 

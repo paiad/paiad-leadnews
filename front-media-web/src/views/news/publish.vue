@@ -2,7 +2,6 @@
   <div class="page-container">
     <div class="page-header">
       <h1 class="page-title">{{ isEdit ? '编辑文章' : '发布文章' }}</h1>
-      <el-button @click="$router.back()" class="back-button">返回</el-button>
     </div>
 
     <div class="form-card">
@@ -276,7 +275,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .page-container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -284,7 +283,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   
   .page-title {
     font-size: 24px;
@@ -300,22 +299,24 @@ onMounted(() => {
 
 .form-card {
   background: white;
-  padding: 40px;
-  border-radius: 18px;
+  padding: 24px;
+  border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   
   :deep(.el-form-item__label) {
     font-weight: 500;
     color: #1d1d1f;
+    margin-bottom: 8px;
   }
   
   :deep(.el-input__wrapper), :deep(.el-textarea__inner) {
-    box-shadow: 0 0 0 1px #d2d2d7 inset;
-    border-radius: 8px;
+    box-shadow: 0 0 0 1px #e5e5e7 inset;
+    border-radius: 6px;
     padding: 8px 12px;
+    transition: all 0.2s ease;
     
     &.is-focus {
-      box-shadow: 0 0 0 2px #000000 inset;
+      box-shadow: 0 0 0 0.5px #9c9c9c inset;
     }
   }
 }
@@ -356,6 +357,9 @@ onMounted(() => {
 
 .form-actions {
   margin-top: 40px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
   
   .draft-button {
     border-radius: 8px;

@@ -13,6 +13,10 @@
           <el-icon><HomeFilled /></el-icon>
           <span>首页</span>
         </el-menu-item>
+        <el-menu-item index="/layout/news/publish">
+          <el-icon><Edit /></el-icon>
+          <span>发布文章</span>
+        </el-menu-item>
         <el-menu-item index="/layout/news/index">
           <el-icon><Document /></el-icon>
           <span>内容管理</span>
@@ -42,7 +46,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { HomeFilled, Document, Picture } from '@element-plus/icons-vue'
+import { HomeFilled, Document, Picture, Edit } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
@@ -85,7 +89,7 @@ const logout = () => {
     .el-menu-item {
       height: 44px;
       line-height: 44px;
-      border-radius: 8px;
+      border-radius: 12px;
       margin-bottom: 4px;
       font-weight: 500;
       
