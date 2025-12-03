@@ -23,18 +23,18 @@ public class ArticleHomeController {
     @PostMapping("/load")
     @ApiOperation("加载文章列表")
     public ResponseResult load(@RequestBody ArticleHomeDto dto) {
-        return apArticleService.load(ArticleConstants.LOADTYPE_LOAD_MORE, dto);
+        return apArticleService.load(dto, ArticleConstants.LOADTYPE_LOAD_MORE);
     }
 
     @PostMapping("/loadmore")
     @ApiOperation("加载更多文章")
     public ResponseResult loadMore(@RequestBody ArticleHomeDto dto) {
-        return apArticleService.load(ArticleConstants.LOADTYPE_LOAD_MORE, dto);
+        return apArticleService.load(dto, ArticleConstants.LOADTYPE_LOAD_MORE);
     }
 
     @PostMapping("/loadnew")
     @ApiOperation("加载最新文章")
     public ResponseResult loadNew(@RequestBody ArticleHomeDto dto) {
-        return apArticleService.load(ArticleConstants.LOADTYPE_LOAD_NEW, dto);
+        return apArticleService.load(dto, ArticleConstants.LOADTYPE_LOAD_NEW);
     }
 }
