@@ -5,9 +5,13 @@
     </div>
 
     <div class="form-card">
-      <el-form :model="form" label-position="top" :rules="rules" ref="formRef" size="large">
+      <el-form :model="form" label-position="top" :rules="rules" ref="formRef" size="large" class="custom-form">
         <el-form-item label="标题" prop="title">
-          <el-input v-model="form.title" placeholder="请输入文章标题" />
+          <el-input 
+            v-model="form.title" 
+            placeholder="请输入文章标题" 
+            class="custom-input"
+          />
         </el-form-item>
 
         <el-form-item label="内容" prop="content">
@@ -17,48 +21,108 @@
             :rows="15"
             placeholder="请输入文章内容..."
             resize="none"
+            class="custom-textarea"
           />
         </el-form-item>
 
         <el-form-item label="封面" prop="type">
-          <el-radio-group v-model="form.type">
-            <el-radio :label="0">无图</el-radio>
-            <el-radio :label="1">单图</el-radio>
-            <el-radio :label="3">三图</el-radio>
-            <el-radio :label="-1">自动</el-radio>
-          </el-radio-group>
+          <div class="cover-type-selector">
+            <div 
+              class="type-option" 
+              :class="{ active: form.type === 0 }"
+              @click="form.type = 0"
+            >
+              无图
+            </div>
+            <div 
+              class="type-option" 
+              :class="{ active: form.type === 1 }"
+              @click="form.type = 1"
+            >
+              单图
+            </div>
+            <div 
+              class="type-option" 
+              :class="{ active: form.type === 3 }"
+              @click="form.type = 3"
+            >
+              三图
+            </div>
+            <div 
+              class="type-option" 
+              :class="{ active: form.type === -1 }"
+              @click="form.type = -1"
+            >
+              自动
+            </div>
+          </div>
         </el-form-item>
 
-        <el-form-item v-if="form.type > 0" label="封面图片">
+        <el-form-item v-if="form.type > 0" label="选择图片">
            <div class="image-selector-container">
              <div v-for="(_, index) in imageCount" :key="index" class="image-selector" @click="selectImage(index)">
                 <img v-if="form.images[index]" :src="getImageUrl(form.images[index])" class="selected-image" />
-                <el-icon v-else class="plus-icon"><Plus /></el-icon>
+                <div v-else class="placeholder-content">
+                  <div class="i-carbon-add plus-icon" />
+                  <span class="placeholder-text">添加图片</span>
+                </div>
              </div>
            </div>
         </el-form-item>
 
         <el-form-item label="频道" prop="channelId">
-          <el-select v-model="form.channelId" placeholder="请选择频道" class="w-full">
+          <el-select 
+            v-model="form.channelId" 
+            placeholder="请选择频道" 
+            class="custom-select w-full"
+          >
             <el-option v-for="channel in channels" :key="channel.id" :label="channel.name" :value="channel.id" />
           </el-select>
         </el-form-item>
 
         <div class="form-actions">
-          <el-button size="large" @click="handleSubmit(false)" class="draft-button">存草稿</el-button>
-          <el-button type="primary" size="large" @click="handleSubmit(true)" class="submit-button">发布</el-button>
+          <button class="action-btn secondary" @click="handleSubmit(false)">
+            存草稿
+          </button>
+          <button class="action-btn primary" @click="handleSubmit(true)">
+            发布
+          </button>
         </div>
       </el-form>
     </div>
     
-    <el-dialog v-model="dialogVisible" title="选择素材" width="800px" class="material-dialog">
+    <el-dialog 
+      v-model="dialogVisible" 
+      title="选择素材" 
+      width="800px" 
+      class="material-dialog"
+      :show-close="false"
+    >
+       <template #header="{ titleId, titleClass }">
+         <div class="dialog-header">
+           <span :id="titleId" :class="titleClass">选择素材</span>
+           <button class="close-btn" @click="dialogVisible = false">
+             <div class="i-carbon-close" />
+           </button>
+         </div>
+       </template>
+       
        <div class="material-grid">
           <div v-for="item in materials" :key="item.id" class="material-item" @click="confirmImage(item.url)">
              <img :src="getImageUrl(item.url)" class="material-img" alt="material" />
+             <div class="selection-overlay">
+               <div class="i-carbon-checkmark-filled" />
+             </div>
           </div>
        </div>
        <div class="dialog-footer">
-         <el-pagination layout="prev, pager, next" :total="materialTotal" @current-change="loadMaterials" background />
+         <el-pagination 
+           layout="prev, pager, next" 
+           :total="materialTotal" 
+           @current-change="loadMaterials" 
+           background 
+           small
+         />
        </div>
     </el-dialog>
   </div>
@@ -70,7 +134,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { getChannels } from '@/api/channel'
 import { submitNews, getNewsDetail } from '@/api/news'
 import { getMaterialList } from '@/api/material'
-import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 
@@ -103,8 +166,8 @@ const imageCount = computed(() => {
 })
 
 const rules = {
-  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-  content: [{ required: true, message: '请输入内容', trigger: 'blur' }],
+  title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
+  content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }],
   channelId: [{ required: true, message: '请选择频道', trigger: 'change' }]
 }
 
@@ -122,38 +185,29 @@ const loadChannels = async () => {
 }
 
 const loadMaterials = async (page = 1) => {
-  console.log('[News Publish] Loading materials, page:', page)
   const res = await getMaterialList({ page, size: 20, isCollection: 0 })
-  console.log('[News Publish] Materials response:', res)
   
   if (res.code === 200) {
     if (res.host) {
       fileHost.value = res.host
-      console.log('[News Publish] Material file host:', fileHost.value)
     }
     
-    // Handle different response structures
     if (res.data) {
       if (res.data.rows && Array.isArray(res.data.rows)) {
         materials.value = res.data.rows
         materialTotal.value = res.data.total || 0
-        console.log('[News Publish] Loaded materials:', materials.value.length, 'Total:', materialTotal.value)
       } else if (Array.isArray(res.data)) {
         materials.value = res.data
         materialTotal.value = res.data.length
-        console.log('[News Publish] Loaded materials array:', materials.value.length)
       } else {
-        console.warn('[News Publish] Unexpected materials data structure:', res.data)
         materials.value = []
         materialTotal.value = 0
       }
     } else {
-      console.warn('[News Publish] No materials data in response')
       materials.value = []
       materialTotal.value = 0
     }
   } else {
-    console.error('[News Publish] Materials error response:', res)
     materials.value = []
     materialTotal.value = 0
   }
@@ -174,8 +228,6 @@ const handleSubmit = async (isSubmit: boolean) => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid) => {
     if (valid) {
-      // Filter out empty strings or undefined values from images array
-      // Also ensure we only send the number of images required by the type
       let imagesToSend = form.images.filter((img): img is string => !!img)
       
       if (form.type === 1 && imagesToSend.length > 1) {
@@ -200,7 +252,7 @@ const handleSubmit = async (isSubmit: boolean) => {
       try {
         const res = await submitNews(data)
         if (res.code === 200) {
-          ElMessage.success(isSubmit ? '发布成功' : '已存草稿')
+          ElMessage.success(isSubmit ? '发布成功' : '草稿保存成功')
           router.push('/layout/news/index')
         } else {
           ElMessage.error(res.errorMessage || '操作失败')
@@ -214,18 +266,14 @@ const handleSubmit = async (isSubmit: boolean) => {
 
 const loadNewsData = async (id: number) => {
   try {
-    console.log('[News Publish] Loading news detail for id:', id)
     const res = await getNewsDetail(id)
-    console.log('[News Publish] News detail response:', res)
     
     if (res.code === 200 && res.data) {
       const data = res.data
-      console.log('[News Publish] Setting form data:', data)
       
       form.id = data.id
       form.title = data.title || ''
       
-      // Handle content parsing (JSON array or string)
       if (data.content) {
         try {
           const contentArr = JSON.parse(data.content)
@@ -238,7 +286,6 @@ const loadNewsData = async (id: number) => {
             form.content = data.content
           }
         } catch (e) {
-          // If parse fails, treat as simple string
           form.content = data.content
         }
       } else {
@@ -249,42 +296,29 @@ const loadNewsData = async (id: number) => {
       form.channelId = data.channelId
       form.status = data.status ?? 0
       
-      // Handle images field - can be string (comma-separated) or array
       if (data.images) {
         if (typeof data.images === 'string') {
-          // If it's a string, split by comma and filter empty strings
           form.images = data.images.split(',').filter((img: string) => img.trim())
-          console.log('[News Publish] Images from string:', form.images)
         } else if (Array.isArray(data.images)) {
           form.images = data.images.filter((img: string) => img)
-          console.log('[News Publish] Images from array:', form.images)
         } else {
           form.images = []
-          console.warn('[News Publish] Unexpected images format:', data.images)
         }
       } else {
         form.images = []
       }
       
-      // Store host for image URLs
       if (res.host) {
         fileHost.value = res.host
-        console.log('[News Publish] File host:', fileHost.value)
       }
-      
-      ElMessage.success('文章详情加载成功')
     } else {
-      console.error('[News Publish] Invalid response:', res)
-      ElMessage.error(res.errorMessage || '加载文章详情失败')
+      ElMessage.error(res.errorMessage || '加载文章失败')
     }
   } catch (error: any) {
-    console.error('[News Publish] Load news error:', error)
-    
-    // If the detail endpoint doesn't exist, show a helpful message
     if (error.response?.status === 404) {
-      ElMessage.error('文章详情接口不存在，请联系后端开发人员')
+      ElMessage.error('文章不存在')
     } else {
-      ElMessage.error('加载文章详情失败')
+      ElMessage.error('加载文章失败')
     }
   }
 }
@@ -301,46 +335,128 @@ onMounted(() => {
 .page-container {
   max-width: 1200px;
   margin: 0 auto;
+  animation: fadeSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   
   .page-title {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 32px;
+    font-weight: 700;
     color: #1d1d1f;
     margin: 0;
-  }
-  
-  .back-button {
-    border-radius: 20px;
+    letter-spacing: -0.02em;
   }
 }
 
 .form-card {
   background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.02);
   
   :deep(.el-form-item__label) {
     font-weight: 500;
     color: #1d1d1f;
     margin-bottom: 8px;
+    font-size: 14px;
   }
   
-  :deep(.el-input__wrapper), :deep(.el-textarea__inner) {
-    box-shadow: 0 0 0 1px #e5e5e7 inset;
-    border-radius: 6px;
-    padding: 8px 12px;
+  .custom-input {
+    :deep(.el-input__wrapper) {
+      background-color: #f5f5f7;
+      box-shadow: none;
+      border: 1px solid #e5e5e7;
+      border-radius: 12px;
+      padding: 8px 16px;
+      height: 48px;
+      transition: all 0.2s ease;
+      
+      &.is-focus {
+        background-color: white;
+        box-shadow: 0 0 0 2px #000000 inset !important;
+      }
+      
+      input {
+        font-size: 16px;
+        color: #1d1d1f;
+      }
+    }
+  }
+  
+  .custom-textarea {
+    :deep(.el-textarea__inner) {
+      background-color: #f5f5f7;
+      box-shadow: none;
+      border: 1px solid #e5e5e7;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 16px;
+      color: #1d1d1f;
+      transition: all 0.2s ease;
+      font-family: inherit;
+      
+      &:focus {
+        background-color: white;
+        box-shadow: 0 0 0 2px #000000 inset !important;
+      }
+    }
+  }
+  
+  .custom-select {
+    width: 100%;
+    
+    :deep(.el-input__wrapper) {
+      background-color: #f5f5f7;
+      box-shadow: none;
+      border: 1px solid #e5e5e7;
+      border-radius: 12px;
+      height: 48px;
+      padding: 0 16px;
+      transition: all 0.2s ease;
+      
+      &.is-focus {
+        background-color: white;
+        box-shadow: 0 0 0 2px #000000 inset !important;
+      }
+      
+      .el-input__inner {
+        font-size: 16px;
+        color: #1d1d1f;
+        height: 48px;
+        line-height: 48px;
+      }
+    }
+  }
+}
+
+.cover-type-selector {
+  display: flex;
+  gap: 8px;
+  background: #f5f5f7;
+  padding: 4px;
+  border-radius: 12px;
+  width: fit-content;
+  
+  .type-option {
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #86868b;
+    cursor: pointer;
     transition: all 0.2s ease;
     
-    &.is-focus {
-      box-shadow: 0 0 0 0.5px #9c9c9c inset;
+    &:hover {
+      color: #1d1d1f;
+    }
+    
+    &.active {
+      background: white;
+      color: #1d1d1f;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
     }
   }
 }
@@ -351,16 +467,17 @@ onMounted(() => {
 }
 
 .image-selector {
-  width: 120px;
-  height: 120px;
-  border: 1px dashed #d2d2d7;
-  border-radius: 8px;
+  width: 140px;
+  height: 140px;
+  border: 2px dashed #e5e5e7;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
   overflow: hidden;
+  background: #f9f9f9;
   
   &:hover {
     border-color: #000000;
@@ -373,31 +490,82 @@ onMounted(() => {
     object-fit: cover;
   }
   
-  .plus-icon {
-    font-size: 24px;
+  .placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
     color: #86868b;
+    
+    .plus-icon {
+      font-size: 24px;
+    }
+    
+    .placeholder-text {
+      font-size: 12px;
+      font-weight: 500;
+    }
   }
 }
 
 .form-actions {
-  margin-top: 40px;
+  margin-top: 48px;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 16px;
   
-  .draft-button {
-    border-radius: 8px;
+  .action-btn {
+    height: 48px;
+    padding: 0 32px;
+    border-radius: 24px;
+    font-size: 16px;
     font-weight: 500;
-  }
-  
-  .submit-button {
-    background-color: #000000;
+    cursor: pointer;
+    transition: all 0.2s;
     border: none;
-    border-radius: 8px;
-    font-weight: 500;
+    
+    &.secondary {
+      background: #f5f5f7;
+      color: #1d1d1f;
+      
+      &:hover {
+        background: #e5e5e7;
+      }
+    }
+    
+    &.primary {
+      background: #1d1d1f;
+      color: white;
+      
+      &:hover {
+        background: #333333;
+        transform: scale(1.02);
+      }
+      
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  
+  .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #86868b;
     
     &:hover {
-      background-color: #333333;
+      color: #1d1d1f;
     }
   }
 }
@@ -413,24 +581,63 @@ onMounted(() => {
   .material-item {
     aspect-ratio: 1;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    border: 2px solid transparent;
-    
-    &:hover {
-      border-color: #000000;
-    }
+    position: relative;
     
     .material-img {
       width: 100%;
       height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s;
+    }
+    
+    .selection-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.2s;
+      
+      .i-carbon-checkmark-filled {
+        color: white;
+        font-size: 32px;
+      }
+    }
+    
+    &:hover {
+      .material-img {
+        transform: scale(1.05);
+      }
+      
+      .selection-overlay {
+        opacity: 1;
+      }
     }
   }
 }
 
 .dialog-footer {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
+  
+  :deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+    background-color: #1d1d1f;
+  }
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
