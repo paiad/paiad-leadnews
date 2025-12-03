@@ -15,14 +15,102 @@
         </el-form-item>
 
         <el-form-item label="内容" prop="content">
-          <el-input
-            v-model="form.content"
-            type="textarea"
-            :rows="15"
-            placeholder="请输入文章内容..."
-            resize="none"
-            class="custom-textarea"
-          />
+          <div class="content-editor">
+            <div 
+              v-for="(block, index) in form.content" 
+              :key="index" 
+              class="content-block"
+            >
+              <!-- 文本块 -->
+              <div v-if="block.type === 'text'" class="block-wrapper text-block">
+                <el-input
+                  v-model="block.value"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入正文内容..."
+                  resize="none"
+                  class="custom-textarea"
+                />
+              </div>
+
+              <!-- 图片块 -->
+              <div v-if="block.type === 'image'" class="block-wrapper image-block">
+                <img :src="getImageUrl(block.value)" class="block-image" />
+              </div>
+
+              <!-- 块操作栏 -->
+              <div class="block-actions">
+                <div class="action-group">
+                  <button 
+                    type="button"
+                    class="icon-btn" 
+                    @click.prevent="moveBlockUp(index)" 
+                    :disabled="index === 0"
+                    title="上移"
+                  >
+                    <el-icon><ArrowUp /></el-icon>
+                  </button>
+                  <button 
+                    type="button"
+                    class="icon-btn" 
+                    @click.prevent="moveBlockDown(index)" 
+                    :disabled="index === form.content.length - 1"
+                    title="下移"
+                  >
+                    <el-icon><ArrowDown /></el-icon>
+                  </button>
+                  <button 
+                    type="button"
+                    class="icon-btn delete" 
+                    @click.prevent="removeBlock(index)"
+                    title="删除"
+                  >
+                    <el-icon><Delete /></el-icon>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部添加按钮 -->
+            <div class="editor-toolbar">
+              <button type="button" class="tool-btn" @click.prevent="addTextBlock">
+                <el-icon><Document /></el-icon>
+                <span>添加文本</span>
+              </button>
+              
+              <el-dropdown trigger="click" @command="handleImageCommand">
+                <button type="button" class="tool-btn">
+                  <el-icon><Picture /></el-icon>
+                  <span>添加图片</span>
+                  <el-icon class="ml-1 text-xs"><ArrowDown /></el-icon>
+                </button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="local">
+                      <el-upload
+                        class="upload-trigger-item"
+                        action=""
+                        :http-request="handleUploadImage"
+                        :show-file-list="false"
+                        accept="image/*"
+                      >
+                        <div class="flex items-center gap-2">
+                          <el-icon><Upload /></el-icon>
+                          <span>本地上传</span>
+                        </div>
+                      </el-upload>
+                    </el-dropdown-item>
+                    <el-dropdown-item command="material">
+                      <div class="flex items-center gap-2">
+                        <el-icon><Folder /></el-icon>
+                        <span>素材库</span>
+                      </div>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+          </div>
         </el-form-item>
 
         <el-form-item label="封面" prop="type">
@@ -60,31 +148,65 @@
 
         <el-form-item v-if="form.type > 0" label="选择图片">
            <div class="image-selector-container">
-             <div v-for="(_, index) in imageCount" :key="index" class="image-selector" @click="selectImage(index)">
-                <img v-if="form.images[index]" :src="getImageUrl(form.images[index])" class="selected-image" />
-                <div v-else class="placeholder-content">
-                  <div class="i-carbon-add plus-icon" />
-                  <span class="placeholder-text">添加图片</span>
-                </div>
+             <div v-for="(_, index) in imageCount" :key="index" class="relative group">
+               <el-dropdown trigger="click" @command="(cmd: string) => handleCoverCommand(cmd, index)">
+                 <div class="image-selector hover:border-blue-500 transition-colors duration-300">
+                    <img v-if="form.images[index]" :src="getImageUrl(form.images[index])" class="selected-image" />
+                    <div v-else class="placeholder-content">
+                      <el-icon class="plus-icon"><Plus /></el-icon>
+                      <span class="placeholder-text">添加图片</span>
+                    </div>
+                 </div>
+                 <template #dropdown>
+                   <el-dropdown-menu>
+                     <el-dropdown-item command="local">
+                       <el-upload
+                         action=""
+                         :http-request="(opts: any) => handleUploadCover(opts, index)"
+                         :show-file-list="false"
+                         accept="image/*"
+                         class="w-full"
+                       >
+                         <div class="flex items-center gap-2">
+                           <el-icon><Upload /></el-icon>
+                           <span>本地上传</span>
+                         </div>
+                       </el-upload>
+                     </el-dropdown-item>
+                     <el-dropdown-item command="material">
+                       <div class="flex items-center gap-2">
+                         <el-icon><Folder /></el-icon>
+                         <span>素材库</span>
+                       </div>
+                     </el-dropdown-item>
+                   </el-dropdown-menu>
+                 </template>
+               </el-dropdown>
              </div>
            </div>
         </el-form-item>
 
-        <el-form-item label="频道" prop="channelId">
-          <el-select 
-            v-model="form.channelId" 
-            placeholder="请选择频道" 
+        <el-form-item prop="publishTime">
+          <template #label>
+            <span class="form-label-text">定时发布</span>
+            <span class="form-label-tip">默认为立即发布</span>
+          </template>
+          <el-date-picker
+            v-model="form.publishTime"
+            type="datetime"
+            placeholder="选择发布时间"
             class="custom-select w-full"
-          >
-            <el-option v-for="channel in channels" :key="channel.id" :label="channel.name" :value="channel.id" />
-          </el-select>
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            :disabled-date="disabledDate"
+          />
         </el-form-item>
 
         <div class="form-actions">
-          <button class="action-btn secondary" @click="handleSubmit(false)">
+          <button type="button" class="action-btn secondary" @click="handleSubmit(false)">
             存草稿
           </button>
-          <button class="action-btn primary" @click="handleSubmit(true)">
+          <button type="button" class="action-btn primary" @click="handleSubmit(true)">
             发布
           </button>
         </div>
@@ -101,8 +223,8 @@
        <template #header="{ titleId, titleClass }">
          <div class="dialog-header">
            <span :id="titleId" :class="titleClass">选择素材</span>
-           <button class="close-btn" @click="dialogVisible = false">
-             <div class="i-carbon-close" />
+           <button type="button" class="close-btn" @click="dialogVisible = false">
+             <el-icon><Close /></el-icon>
            </button>
          </div>
        </template>
@@ -111,7 +233,7 @@
           <div v-for="item in materials" :key="item.id" class="material-item" @click="confirmImage(item.url)">
              <img :src="getImageUrl(item.url)" class="material-img" alt="material" />
              <div class="selection-overlay">
-               <div class="i-carbon-checkmark-filled" />
+               <el-icon class="check-icon"><Check /></el-icon>
              </div>
           </div>
        </div>
@@ -133,30 +255,53 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getChannels } from '@/api/channel'
 import { submitNews, getNewsDetail } from '@/api/news'
-import { getMaterialList } from '@/api/material'
+import { getMaterialList, uploadPicture } from '@/api/material'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
+import type { FormInstance, UploadRequestOptions } from 'element-plus'
+import { 
+  ArrowUp, 
+  ArrowDown, 
+  Delete, 
+  Document, 
+  Picture, 
+  Folder, 
+  Upload, 
+  Plus, 
+  Close, 
+  Check 
+} from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
 const formRef = ref<FormInstance>()
 const channels = ref<any[]>([])
 const dialogVisible = ref(false)
+// 区分素材库选择用途：'cover' - 封面, 'content' - 正文插入
+const materialSelectMode = ref<'cover' | 'content'>('cover')
+// 当前操作的图片索引（用于封面）
 const currentImageIndex = ref(0)
+
 const materials = ref<any[]>([])
 const materialTotal = ref(0)
 const fileHost = ref('')
 
 const isEdit = computed(() => !!route.query.id)
 
+interface ContentBlock {
+  type: 'text' | 'image'
+  value: string
+}
+
 const form = reactive({
   id: undefined,
   title: '',
-  content: '',
+  // content 现在是一个块数组
+  content: [] as ContentBlock[],
   type: 1,
   channelId: undefined,
   images: [] as string[],
-  status: 0
+  status: 0,
+  publishTime: null as string | null
 })
 
 const imageCount = computed(() => {
@@ -165,10 +310,19 @@ const imageCount = computed(() => {
   return 0
 })
 
+const validatePublishTime = (_: any, value: any, callback: any) => {
+  if (value && new Date(value).getTime() < Date.now()) {
+    callback(new Error('不能选择过去的时间'))
+  } else {
+    callback()
+  }
+}
+
 const rules = {
   title: [{ required: true, message: '请输入文章标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入文章内容', trigger: 'blur' }],
-  channelId: [{ required: true, message: '请选择频道', trigger: 'change' }]
+  channelId: [{ required: true, message: '请选择频道', trigger: 'change' }],
+  publishTime: [{ validator: validatePublishTime, trigger: 'change' }]
 }
 
 const getImageUrl = (url: string) => {
@@ -213,19 +367,135 @@ const loadMaterials = async (page = 1) => {
   }
 }
 
-const selectImage = (index: number) => {
+// 打开素材库选择封面
+const selectCoverImage = (index: number) => {
+  materialSelectMode.value = 'cover'
   currentImageIndex.value = index
   dialogVisible.value = true
   loadMaterials()
 }
 
+// 打开素材库插入正文图片
+const insertImageFromMaterial = () => {
+  materialSelectMode.value = 'content'
+  dialogVisible.value = true
+  loadMaterials()
+}
+
+// 确认选择素材
 const confirmImage = (url: string) => {
-  form.images[currentImageIndex.value] = url
+  if (materialSelectMode.value === 'cover') {
+    form.images[currentImageIndex.value] = url
+  } else {
+    // 插入到正文末尾
+    form.content.push({ type: 'image', value: url })
+    // 自动追加一个文本块
+    form.content.push({ type: 'text', value: '' })
+  }
   dialogVisible.value = false
+}
+
+// 处理图片添加命令
+const handleImageCommand = (command: string) => {
+  if (command === 'material') {
+    insertImageFromMaterial()
+  }
+  // local command is handled by el-upload directly
+}
+
+// 处理封面图片命令
+const handleCoverCommand = (command: string, index: number) => {
+  if (command === 'material') {
+    selectCoverImage(index)
+  }
+}
+
+// 上传封面图片
+const handleUploadCover = async (options: UploadRequestOptions, index: number) => {
+  const formData = new FormData()
+  formData.append('multipartFile', options.file)
+  
+  try {
+    const res = await uploadPicture(formData)
+    if (res.code === 200) {
+      form.images[index] = res.data
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error(res.errorMessage || '上传失败')
+    }
+  } catch (error) {
+    ElMessage.error('上传失败')
+  }
+}
+
+const disabledDate = (time: Date) => {
+  return time.getTime() < Date.now() - 8.64e7
+}
+
+// 本地上传图片
+const handleUploadImage = async (options: UploadRequestOptions) => {
+  const formData = new FormData()
+  formData.append('multipartFile', options.file)
+  
+  try {
+    const res = await uploadPicture(formData)
+    if (res.code === 200) {
+      // 插入图片块
+      form.content.push({ type: 'image', value: res.data })
+      // 自动追加一个文本块
+      form.content.push({ type: 'text', value: '' })
+      ElMessage.success('上传成功')
+    } else {
+      ElMessage.error(res.errorMessage || '上传失败')
+    }
+  } catch (error) {
+    ElMessage.error('上传失败')
+  }
+}
+
+// 添加文本块
+const addTextBlock = () => {
+  form.content.push({ type: 'text', value: '' })
+}
+
+// 删除块
+const removeBlock = (index: number) => {
+  form.content.splice(index, 1)
+}
+
+// 上移块
+const moveBlockUp = (index: number) => {
+  if (index > 0) {
+    const temp = form.content[index]
+    const prev = form.content[index - 1]
+    if (temp && prev) {
+      form.content[index] = prev
+      form.content[index - 1] = temp
+    }
+  }
+}
+
+// 下移块
+const moveBlockDown = (index: number) => {
+  if (index < form.content.length - 1) {
+    const temp = form.content[index]
+    const next = form.content[index + 1]
+    if (temp && next) {
+      form.content[index] = next
+      form.content[index + 1] = temp
+    }
+  }
 }
 
 const handleSubmit = async (isSubmit: boolean) => {
   if (!formRef.value) return
+  
+  // 简单校验：内容不能为空
+  if (form.content.length === 0) {
+    ElMessage.warning('请输入文章内容')
+    return
+  }
+  
   await formRef.value.validate(async (valid) => {
     if (valid) {
       let imagesToSend = form.images.filter((img): img is string => !!img)
@@ -240,13 +510,12 @@ const handleSubmit = async (isSubmit: boolean) => {
 
       const data = {
         ...form,
-        content: JSON.stringify([{
-          type: 'text',
-          value: form.content
-        }]),
+        // 直接序列化 content 数组
+        content: JSON.stringify(form.content),
         status: isSubmit ? 1 : 0,
         images: imagesToSend,
-        channelId: form.channelId as unknown as number
+        channelId: form.channelId as unknown as number,
+        publishTime: form.publishTime || undefined
       }
       
       try {
@@ -279,22 +548,21 @@ const loadNewsData = async (id: number) => {
           const contentArr = JSON.parse(data.content)
           if (Array.isArray(contentArr)) {
             form.content = contentArr
-              .filter((item: any) => item.type === 'text')
-              .map((item: any) => item.value)
-              .join('\n')
           } else {
-            form.content = data.content
+            // 兼容旧数据（如果是纯字符串）
+            form.content = [{ type: 'text', value: data.content }]
           }
         } catch (e) {
-          form.content = data.content
+          form.content = [{ type: 'text', value: data.content }]
         }
       } else {
-        form.content = ''
+        form.content = [{ type: 'text', value: '' }]
       }
       
       form.type = data.type ?? 1
       form.channelId = data.channelId
       form.status = data.status ?? 0
+      form.publishTime = data.publishTime || null
       
       if (data.images) {
         if (typeof data.images === 'string') {
@@ -327,6 +595,9 @@ onMounted(() => {
   loadChannels()
   if (isEdit.value) {
     loadNewsData(Number(route.query.id))
+  } else {
+    // 新建时默认添加一个文本块
+    form.content = [{ type: 'text', value: '' }]
   }
 })
 </script>
@@ -422,13 +693,20 @@ onMounted(() => {
         box-shadow: 0 0 0 2px #000000 inset !important;
       }
       
-      .el-input__inner {
+    .el-input__inner {
         font-size: 16px;
         color: #1d1d1f;
         height: 48px;
         line-height: 48px;
       }
     }
+  }
+  
+  .form-label-tip {
+    font-size: 12px;
+    color: #86868b;
+    margin-left: 8px;
+    font-weight: normal;
   }
 }
 
@@ -602,7 +880,7 @@ onMounted(() => {
       opacity: 0;
       transition: opacity 0.2s;
       
-      .i-carbon-checkmark-filled {
+      .check-icon {
         color: white;
         font-size: 32px;
       }
@@ -640,4 +918,133 @@ onMounted(() => {
     transform: translateY(0);
   }
 }
-</style>
+
+/* 块级编辑器样式 */
+.content-editor {
+  width: 100%;
+  
+  .content-block {
+    position: relative;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    transition: all 0.2s;
+    
+    &:hover {
+      .block-actions {
+        opacity: 1;
+      }
+    }
+    
+    .block-wrapper {
+      &.image-block {
+        display: flex;
+        justify-content: center;
+        background: #f5f5f7;
+        padding: 16px;
+        border-radius: 12px;
+        
+        .block-image {
+          max-width: 100%;
+          max-height: 400px;
+          border-radius: 8px;
+          object-fit: contain;
+        }
+      }
+    }
+    
+    .block-actions {
+      position: absolute;
+      right: -48px;
+      top: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+      
+      .action-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        background: white;
+        padding: 4px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        
+        .icon-btn {
+          width: 32px;
+          height: 32px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid #e5e5e7;
+          background: white;
+          cursor: pointer;
+          color: #86868b;
+          border-radius: 6px;
+          transition: all 0.2s;
+          
+          &:hover {
+            border-color: #1d1d1f;
+            background: #f5f5f7;
+            color: #1d1d1f;
+          }
+          
+          &.delete:hover {
+            background: #fff1f1;
+            color: #ff3b30;
+          }
+          
+          &:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+  }
+  
+  .editor-toolbar {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px dashed #e5e5e7;
+    
+    .tool-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 40px;
+      padding: 0 16px;
+      border: 1px solid #e5e5e7;
+      background: white;
+      border-radius: 20px;
+      color: #1d1d1f;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        border-color: #1d1d1f;
+        background: #f5f5f7;
+      }
+      
+      .el-icon {
+        font-size: 18px;
+      }
+    }
+    
+    .upload-trigger {
+      display: inline-block;
+    }
+  }
+}
+
+.upload-trigger-item {
+  width: 100%;
+  
+  :deep(.el-upload) {
+    width: 100%;
+    display: block;
+    text-align: left;
+  }
+}</style>
