@@ -327,8 +327,9 @@ const rules = {
 
 const getImageUrl = (url: string) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
-  return (fileHost.value || '') + url
+  const urlStr = String(url)
+  if (urlStr.startsWith('http')) return urlStr
+  return (fileHost.value || '') + urlStr
 }
 
 const loadChannels = async () => {
@@ -389,8 +390,6 @@ const confirmImage = (url: string) => {
   } else {
     // 插入到正文末尾
     form.content.push({ type: 'image', value: url })
-    // 自动追加一个文本块
-    form.content.push({ type: 'text', value: '' })
   }
   dialogVisible.value = false
 }
@@ -418,7 +417,8 @@ const handleUploadCover = async (options: UploadRequestOptions, index: number) =
   try {
     const res = await uploadPicture(formData)
     if (res.code === 200) {
-      form.images[index] = res.data
+      const url = (res.data && typeof res.data === 'object') ? res.data.url : res.data
+      form.images[index] = url
       ElMessage.success('上传成功')
     } else {
       ElMessage.error(res.errorMessage || '上传失败')
@@ -441,9 +441,8 @@ const handleUploadImage = async (options: UploadRequestOptions) => {
     const res = await uploadPicture(formData)
     if (res.code === 200) {
       // 插入图片块
-      form.content.push({ type: 'image', value: res.data })
-      // 自动追加一个文本块
-      form.content.push({ type: 'text', value: '' })
+      const url = (res.data && typeof res.data === 'object') ? res.data.url : res.data
+      form.content.push({ type: 'image', value: url })
       ElMessage.success('上传成功')
     } else {
       ElMessage.error(res.errorMessage || '上传失败')

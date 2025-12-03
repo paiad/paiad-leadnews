@@ -10,8 +10,10 @@ import com.paiad.model.common.dtos.ResponseResult;
 import com.paiad.model.common.enums.AppHttpCodeEnum;
 import com.paiad.model.wemedia.dtos.WmMaterialDto;
 import com.paiad.model.wemedia.pojos.WmMaterial;
+import com.paiad.model.wemedia.pojos.WmNewsMaterial;
 import com.paiad.utils.thread.WmThreadLocalUtil;
 import com.paiad.wemedia.mapper.WmMaterialMapper;
+import com.paiad.wemedia.mapper.WmNewsMaterialMapper;
 import com.paiad.wemedia.service.WmMaterialService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private WmNewsMaterialMapper wmNewsMaterialMapper;
 
     /**
      * 图片上传
@@ -106,5 +110,82 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
         ResponseResult responseResult = new PageResponseResult(dto.getPage(),dto.getSize(),(int)page.getTotal());
         responseResult.setData(page.getRecords());
         return responseResult;
+    }
+
+    /**
+     * 收藏/取消收藏素材
+     *
+     * @param id 素材ID
+     * @return
+     */
+    @Override
+    public ResponseResult collect(Integer id) {
+        // 1.检查参数
+        if (id == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.查询素材
+        WmMaterial wmMaterial = getById(id);
+        if (wmMaterial == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "素材不存在");
+        }
+
+        // 3.判断是否是当前用户的素材
+        if (!wmMaterial.getUserId().equals(WmThreadLocalUtil.getUser().getId())) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "不能操作其他用户的素材");
+        }
+
+        // 4.切换收藏状态
+        if (wmMaterial.getIsCollection() != null && wmMaterial.getIsCollection() == 1) {
+            wmMaterial.setIsCollection((short) 0);
+        } else {
+            wmMaterial.setIsCollection((short) 1);
+        }
+
+        // 5.更新数据库
+        updateById(wmMaterial);
+
+        // 6.返回结果
+        return ResponseResult.okResult(wmMaterial);
+    }
+
+    /**
+     * 删除素材
+     *
+     * @param id 素材ID
+     * @return
+     */
+    @Override
+    public ResponseResult delPicture(Integer id) {
+        // 1.检查参数
+        if (id == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.查询素材
+        WmMaterial wmMaterial = getById(id);
+        if (wmMaterial == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "素材不存在");
+        }
+
+        // 3.判断是否是当前用户的素材
+        if (!wmMaterial.getUserId().equals(WmThreadLocalUtil.getUser().getId())) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "不能删除其他用户的素材");
+        }
+
+        // 4.判断素材是否被引用
+        LambdaQueryWrapper<WmNewsMaterial> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(WmNewsMaterial::getMaterialId, id);
+        Long count = Long.valueOf(wmNewsMaterialMapper.selectCount(lambdaQueryWrapper));
+        if (count > 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "素材正在被引用，不能删除");
+        }
+
+        // 5.删除素材
+        removeById(id);
+
+        // 6.返回结果
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 }
