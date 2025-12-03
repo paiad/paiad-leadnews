@@ -1,7 +1,7 @@
 <template>
   <el-container class="layout-container">
     <el-aside width="240px" class="aside">
-      <div class="logo">Paiad Media</div>
+      <div class="logo">𝑷𝒂𝒊𝒂𝒅 𝑳𝒆𝒂𝒅𝒏𝒆𝒘𝒔</div>
       <el-menu
         :default-active="activeMenu"
         class="el-menu-vertical"
@@ -75,7 +75,7 @@ const logout = () => {
   .logo {
     height: 64px;
     line-height: 64px;
-    padding-left: 24px;
+    text-align: center;
     font-size: 18px;
     font-weight: 600;
     color: #1d1d1f;
