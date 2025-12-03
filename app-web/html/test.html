@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paiad 头条 - 测试页面</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 100%;
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      h1 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 2.5em;
+        text-align: center;
+      }
+
+      .status {
+        background: #f0fdf4;
+        border-left: 4px solid #22c55e;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .status h2 {
+        color: #16a34a;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+      }
+
+      .info {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .info h3 {
+        color: #2563eb;
+        margin-bottom: 10px;
+      }
+
+      .info ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .info li {
+        padding: 8px 0;
+        color: #1e40af;
+        display: flex;
+        align-items: center;
+      }
+
+      .info li::before {
+        content: "✓";
+        color: #22c55e;
+        font-weight: bold;
+        margin-right: 10px;
+      }
+
+      .warning {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 5px;
+      }
+
+      .warning h3 {
+        color: #d97706;
+        margin-bottom: 10px;
+      }
+
+      .warning p {
+        color: #92400e;
+        line-height: 1.6;
+      }
+
+      .btn {
+        display: inline-block;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        margin-top: 20px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        font-weight: 600;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      .api-test {
+        margin-top: 20px;
+        text-align: center;
+      }
+
+      #apiResult {
+        margin-top: 15px;
+        padding: 15px;
+        background: #f9fafb;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+        max-height: 200px;
+        overflow-y: auto;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 Paiad 头条</h1>
+
+      <div class="status">
+        <h2>✅ Nginx 服务器运行正常</h2>
+        <p>当前时间: <span id="currentTime"></span></p>
+      </div>
+
+      <div class="info">
+        <h3>📋 服务配置信息</h3>
+        <ul>
+          <li>监听端口: 8801</li>
+          <li>静态文件目录: E:/IDEA/Paiad/paiad-leadnews/app-web/html/</li>
+          <li>后端网关: http://localhost:51601</li>
+          <li>访问地址: http://localhost:8801</li>
+        </ul>
+      </div>
+
+      <div class="warning">
+        <h3>⚠️ 前端项目未部署</h3>
+        <p>
+          当前只有测试页面。需要将编译好的前端项目文件放置到
+          <code>html</code> 目录下。
+        </p>
+      </div>
+
+      <div class="api-test">
+        <button class="btn" onclick="testBackendAPI()">测试后端API连接</button>
+        <div id="apiResult"></div>
+      </div>
+    </div>
+
+    <script>
+      // 显示当前时间
+      function updateTime() {
+        const now = new Date();
+        document.getElementById("currentTime").textContent =
+          now.toLocaleString("zh-CN");
+      }
+      updateTime();
+      setInterval(updateTime, 1000);
+
+      // 测试后端API
+      async function testBackendAPI() {
+        const resultDiv = document.getElementById("apiResult");
+        resultDiv.style.display = "block";
+        resultDiv.innerHTML = "正在测试连接...";
+
+        try {
+          const response = await fetch("/app/api/v1/article/load", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              tag: "__all__",
+              size: 10,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            resultDiv.innerHTML = `
+                        <strong style="color: #22c55e;">✓ 后端API连接成功！</strong><br>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+          } else {
+            resultDiv.innerHTML = `
+                        <strong style="color: #f59e0b;">⚠ 响应状态: ${response.status}</strong><br>
+                        后端服务可能未启动或配置有误
+                    `;
+          }
+        } catch (error) {
+          resultDiv.innerHTML = `
+                    <strong style="color: #ef4444;">✗ 连接失败</strong><br>
+                    错误信息: ${error.message}<br>
+                    <small>请确保后端服务(端口51601)已启动</small>
+                `;
+        }
+      }
+    </script>
+  </body>
+</html>
