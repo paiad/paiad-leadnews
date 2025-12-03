@@ -90,8 +90,18 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
 
             // 5. 审核成功,保存app端的相关文章数据
             ResponseResult responseResult = saveAppArticle(wmNews);
+
+            // 检查返回结果是否为空
+            if (responseResult == null) {
+                log.error("保存app端文章数据失败,返回结果为null,文章ID: {}", id);
+                updateWmNews(wmNews, (short) 3, "审核失败:保存文章数据时服务调用失败");
+                throw new RuntimeException("WmNewsAutoScanServiceImpl-文章审核,保存app端相关文章数据失败:返回结果为null");
+            }
+
             if (!responseResult.getCode().equals(200)) {
-                log.error("保存app端文章数据失败,文章ID: {}", id);
+                log.error("保存app端文章数据失败,文章ID: {}, 错误码: {}, 错误信息: {}",
+                        id, responseResult.getCode(), responseResult.getErrorMessage());
+                updateWmNews(wmNews, (short) 3, "审核失败:" + responseResult.getErrorMessage());
                 throw new RuntimeException("WmNewsAutoScanServiceImpl-文章审核,保存app端相关文章数据失败");
             }
 
@@ -186,36 +196,47 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
      * @return 保存结果
      */
     private ResponseResult saveAppArticle(WmNews wmNews) {
-        ArticleDto dto = new ArticleDto();
+        try {
+            ArticleDto dto = new ArticleDto();
 
-        // 属性拷贝
-        BeanUtils.copyProperties(wmNews, dto);
+            // 属性拷贝
+            BeanUtils.copyProperties(wmNews, dto);
 
-        // 文章的布局
-        dto.setLayout(wmNews.getType());
+            // 文章的布局
+            dto.setLayout(wmNews.getType());
 
-        // 频道信息
-        WmChannel wmChannel = wmChannelMapper.selectById(wmNews.getChannelId());
-        if (wmChannel != null) {
-            dto.setChannelName(wmChannel.getName());
+            // 频道信息
+            WmChannel wmChannel = wmChannelMapper.selectById(wmNews.getChannelId());
+            if (wmChannel != null) {
+                dto.setChannelName(wmChannel.getName());
+            }
+
+            // 作者信息
+            dto.setAuthorId(wmNews.getUserId().longValue());
+            WmUser wmUser = wmUserMapper.selectById(wmNews.getUserId());
+            if (wmUser != null) {
+                dto.setAuthorName(wmUser.getName());
+            }
+
+            // 设置文章id(如果是更新)
+            if (wmNews.getArticleId() != null) {
+                dto.setId(wmNews.getArticleId());
+            }
+            dto.setCreatedTime(new Date());
+
+            log.info("准备调用文章服务保存文章,文章ID: {}, 标题: {}", wmNews.getId(), wmNews.getTitle());
+
+            // 调用文章服务保存
+            ResponseResult responseResult = articleClient.saveArticle(dto);
+
+            log.info("文章服务调用完成,返回结果: {}", responseResult);
+
+            return responseResult;
+        } catch (Exception e) {
+            log.error("保存app端文章数据异常,文章ID: {}", wmNews.getId(), e);
+            // 返回一个错误的 ResponseResult 而不是 null
+            return ResponseResult.errorResult(500, "保存文章失败: " + e.getMessage());
         }
-
-        // 作者信息
-        dto.setAuthorId(wmNews.getUserId().longValue());
-        WmUser wmUser = wmUserMapper.selectById(wmNews.getUserId());
-        if (wmUser != null) {
-            dto.setAuthorName(wmUser.getName());
-        }
-
-        // 设置文章id(如果是更新)
-        if (wmNews.getArticleId() != null) {
-            dto.setId(wmNews.getArticleId());
-        }
-        dto.setCreatedTime(new Date());
-
-        // 调用文章服务保存
-        ResponseResult responseResult = articleClient.saveArticle(dto);
-        return responseResult;
     }
 
     /**
