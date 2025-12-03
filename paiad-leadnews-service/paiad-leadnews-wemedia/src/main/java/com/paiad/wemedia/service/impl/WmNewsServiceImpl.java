@@ -21,6 +21,7 @@ import com.paiad.utils.thread.WmThreadLocalUtil;
 import com.paiad.wemedia.mapper.WmMaterialMapper;
 import com.paiad.wemedia.mapper.WmNewsMapper;
 import com.paiad.wemedia.mapper.WmNewsMaterialMapper;
+import com.paiad.wemedia.service.WmNewsAutoScanService;
 import com.paiad.wemedia.service.WmNewsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -48,14 +49,14 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
      */
     @Override
     public ResponseResult findList(WmNewsPageReqDto dto) {
-        //1.检查参?
-        //分页检?
+        //1.检查参数
+        //分页检查
         dto.checkParam();
 
         //2.分页条件查询
         IPage page = new Page(dto.getPage(), dto.getSize());
         LambdaQueryWrapper<WmNews> lambdaQueryWrapper = new LambdaQueryWrapper();
-        //状态精确查?
+        //状态精确查询
         if (dto.getStatus() != null) {
             lambdaQueryWrapper.eq(WmNews::getStatus, dto.getStatus());
         }
@@ -92,6 +93,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         return responseResult;
     }
 
+    @Autowired
+    private WmNewsAutoScanService wmNewsAutoScanService;
+
     /**
      * 发布修改文章或保存为草稿
      * @param dto
@@ -108,7 +112,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         //1.保存或修改文章
 
         WmNews wmNews = new WmNews();
-        //属性拷贝，属性名词和类型相同才能拷贝
+        //属性拷贝 属性名词和类型相同才能拷贝
         BeanUtils.copyProperties(dto,wmNews);
         //封面图片  list---> string
         if(dto.getImages() != null && dto.getImages().size() > 0){
@@ -116,14 +120,14 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             String imageStr = StringUtils.join(dto.getImages(), ",");
             wmNews.setImages(imageStr);
         }
-        //如果当前封面类型为自?-1
+        //如果当前封面类型为自动 -1
         if(dto.getType().equals(WemediaConstants.WM_NEWS_TYPE_AUTO)){
             wmNews.setType(null);
         }
 
         saveOrUpdateWmNews(wmNews);
 
-        //2.判断是否为草稿  如果为草稿结束当前
+        //2.判断是否为草稿  如果为草稿结束当前方法
         if(dto.getStatus().equals(WmNews.Status.NORMAL.getCode())){
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         }
@@ -133,8 +137,11 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         List<String> materials =  ectractUrlInfo(dto.getContent());
         saveRelativeInfoForContent(materials,wmNews.getId());
 
-        //4.不是草稿，保存文章封面图片与素材的关系，如果当前布局是自动，需要匹配封面图?
+        //4.不是草稿，保存文章封面图片与素材的关系，如果当前布局是自动，需要匹配封面图片
         saveRelativeInfoForCover(dto,wmNews,materials);
+
+        //审核文章
+        wmNewsAutoScanService.autoScanWmNews(wmNews.getId());
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
 
@@ -142,9 +149,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 第一个功能：如果当前封面类型为自动，则设置封面类型的数据
-     * 匹配规则?
-     * 1，如果内容图片大于等1，小3  单图  type 1
-     * 2，如果内容图片大于等3  多图  type 3
+     * 匹配规则：
+     * 1，如果内容图片大于等于1，小于3  单图  type 1
+     * 2，如果内容图片大于等于3  多图  type 3
      * 3，如果内容没有图片，无图  type 0
      *
      * 第二个功能：保存封面图片与素材的关系
@@ -177,7 +184,6 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             }
             updateById(wmNews);
         }
-        //第二个功能：保存封面图片与素材的关系
         if(images != null && images.size() > 0){
             saveRelativeInfo(images,wmNews.getId(),WemediaConstants.WM_COVER_REFERENCE);
         }
@@ -198,13 +204,13 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     private WmMaterialMapper wmMaterialMapper;
 
     /**
-     * 保存文章图片与素材的关系到数据库?
+     * 保存文章图片与素材的关系到数据库中
      * @param materials
      * @param newsId
      * @param type
      */
     private void saveRelativeInfo(List<String> materials, Integer newsId, Short type) {
-        if(materials != null && !materials.isEmpty()){
+        if(materials!=null && !materials.isEmpty()){
             //通过图片的url查询素材的id
             List<WmMaterial> dbMaterials = wmMaterialMapper.selectList(Wrappers.<WmMaterial>lambdaQuery().in(WmMaterial::getUrl, materials));
 
@@ -223,6 +229,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             //批量保存
             wmNewsMaterialMapper.saveRelations(idList,newsId,type);
         }
+
     }
 
 
@@ -249,11 +256,11 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     private WmNewsMaterialMapper wmNewsMaterialMapper;
 
     /**
-     * 保存或修改文?
+     * 保存或修改文章
      * @param wmNews
      */
     private void saveOrUpdateWmNews(WmNews wmNews) {
-        //补全属?
+        //补全属性
         wmNews.setUserId(WmThreadLocalUtil.getUser().getId());
         wmNews.setCreatedTime(new Date());
         wmNews.setSubmitedTime(new Date());
@@ -268,6 +275,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             wmNewsMaterialMapper.delete(Wrappers.<WmNewsMaterial>lambdaQuery().eq(WmNewsMaterial::getNewsId,wmNews.getId()));
             updateById(wmNews);
         }
+
     }
 
 

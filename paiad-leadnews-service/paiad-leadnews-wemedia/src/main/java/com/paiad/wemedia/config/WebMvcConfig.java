@@ -1,6 +1,5 @@
 package com.paiad.wemedia.config;
 
-
 import com.paiad.wemedia.interceptor.WmTokenInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
