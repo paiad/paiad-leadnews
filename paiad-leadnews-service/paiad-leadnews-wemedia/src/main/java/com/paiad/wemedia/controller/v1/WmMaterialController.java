@@ -3,11 +3,9 @@ package com.paiad.wemedia.controller.v1;
 import com.paiad.model.common.dtos.ResponseResult;
 import com.paiad.model.wemedia.dtos.WmMaterialDto;
 import com.paiad.wemedia.service.WmMaterialService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
@@ -26,5 +24,17 @@ public class WmMaterialController {
     @PostMapping("/list")
     public ResponseResult findList(@RequestBody WmMaterialDto dto){
         return wmMaterialService.findList(dto);
+    }
+
+    @ApiOperation("收藏/取消收藏素材")
+    @PostMapping("/collect/{id}")
+    public ResponseResult collect(@PathVariable Integer id) {
+        return wmMaterialService.collect(id);
+    }
+
+    @ApiOperation("删除素材")
+    @DeleteMapping("/del/{id}")
+    public ResponseResult delPicture(@PathVariable Integer id) {
+        return wmMaterialService.delPicture(id);
     }
 }

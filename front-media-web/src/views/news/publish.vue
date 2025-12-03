@@ -14,6 +14,8 @@
           />
         </el-form-item>
 
+
+
         <el-form-item label="内容" prop="content">
           <div class="content-editor">
             <div 
@@ -186,6 +188,50 @@
            </div>
         </el-form-item>
 
+        <el-form-item label="频道" prop="channelId">
+          <el-select 
+            v-model="form.channelId" 
+            placeholder="请选择频道" 
+            class="custom-select"
+          >
+            <el-option
+              v-for="channel in channels"
+              :key="channel.id"
+              :label="channel.name"
+              :value="channel.id"
+            />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="标签" prop="labels">
+          <div 
+            class="min-h-[48px] flex flex-wrap gap-2 px-3 py-2 bg-[#f5f5f7] rounded-xl border border-transparent transition-all duration-200 focus-within:bg-white focus-within:border-[#0071e3] focus-within:shadow-[0_0_0_1px_#0071e3] w-full cursor-text items-center"
+            @click="focusTagInput"
+          >
+            <div 
+              v-for="(tag, index) in tags" 
+              :key="index"
+              class="bg-white border border-[#e5e5e7] px-2.5 py-1 rounded-md text-[13px] text-[#1d1d1f] flex items-center gap-1.5 shadow-sm"
+            >
+              <span>{{ tag }}</span>
+              <el-icon 
+                class="cursor-pointer text-[#86868b] hover:text-[#1d1d1f] transition-colors text-[10px]"
+                @click.stop="handleTagClose(tag)"
+              >
+                <Close />
+              </el-icon>
+            </div>
+            <input
+              ref="tagInputRef"
+              v-model="tagInput"
+              class="bg-transparent border-none outline-none flex-1 min-w-[80px] h-full text-[15px] text-[#1d1d1f] placeholder:text-[#86868b]"
+              placeholder="输入标签..."
+              @keydown.enter.prevent="handleTagInputConfirm"
+              @keydown.backspace="handleTagBackspace"
+            />
+          </div>
+        </el-form-item>
+
         <el-form-item prop="publishTime">
           <template #label>
             <span class="form-label-text">定时发布</span>
@@ -251,7 +297,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getChannels } from '@/api/channel'
 import { submitNews, getNewsDetail } from '@/api/news'
@@ -281,6 +327,10 @@ const materialSelectMode = ref<'cover' | 'content'>('cover')
 // 当前操作的图片索引（用于封面）
 const currentImageIndex = ref(0)
 
+const tags = ref<string[]>([])
+const tagInput = ref('')
+const tagInputRef = ref<HTMLInputElement>()
+
 const materials = ref<any[]>([])
 const materialTotal = ref(0)
 const fileHost = ref('')
@@ -299,6 +349,7 @@ const form = reactive({
   content: [] as ContentBlock[],
   type: 1,
   channelId: undefined,
+  labels: '',
   images: [] as string[],
   status: 0,
   publishTime: null as string | null
@@ -309,6 +360,36 @@ const imageCount = computed(() => {
   if (form.type === 3) return 3
   return 0
 })
+
+const handleTagInputConfirm = () => {
+  if (tagInput.value) {
+    const newTags = tagInput.value.split(/[,，]/).map(t => t.trim()).filter(t => t)
+    newTags.forEach(tag => {
+      if (tag && !tags.value.includes(tag)) {
+        tags.value.push(tag)
+      }
+    })
+    tagInput.value = ''
+  }
+}
+
+const handleTagClose = (tag: string) => {
+  tags.value = tags.value.filter(t => t !== tag)
+}
+
+const handleTagBackspace = () => {
+  if (!tagInput.value && tags.value.length > 0) {
+    tags.value.pop()
+  }
+}
+
+const focusTagInput = () => {
+  tagInputRef.value?.focus()
+}
+
+watch(tags, (newVal) => {
+  form.labels = newVal.join(',')
+}, { deep: true })
 
 const validatePublishTime = (_: any, value: any, callback: any) => {
   if (value && new Date(value).getTime() < Date.now()) {
@@ -327,8 +408,9 @@ const rules = {
 
 const getImageUrl = (url: string) => {
   if (!url) return ''
-  if (url.startsWith('http')) return url
-  return (fileHost.value || '') + url
+  const urlStr = String(url)
+  if (urlStr.startsWith('http')) return urlStr
+  return (fileHost.value || '') + urlStr
 }
 
 const loadChannels = async () => {
@@ -389,8 +471,6 @@ const confirmImage = (url: string) => {
   } else {
     // 插入到正文末尾
     form.content.push({ type: 'image', value: url })
-    // 自动追加一个文本块
-    form.content.push({ type: 'text', value: '' })
   }
   dialogVisible.value = false
 }
@@ -418,7 +498,8 @@ const handleUploadCover = async (options: UploadRequestOptions, index: number) =
   try {
     const res = await uploadPicture(formData)
     if (res.code === 200) {
-      form.images[index] = res.data
+      const url = (res.data && typeof res.data === 'object') ? res.data.url : res.data
+      form.images[index] = url
       ElMessage.success('上传成功')
     } else {
       ElMessage.error(res.errorMessage || '上传失败')
@@ -441,9 +522,8 @@ const handleUploadImage = async (options: UploadRequestOptions) => {
     const res = await uploadPicture(formData)
     if (res.code === 200) {
       // 插入图片块
-      form.content.push({ type: 'image', value: res.data })
-      // 自动追加一个文本块
-      form.content.push({ type: 'text', value: '' })
+      const url = (res.data && typeof res.data === 'object') ? res.data.url : res.data
+      form.content.push({ type: 'image', value: url })
       ElMessage.success('上传成功')
     } else {
       ElMessage.error(res.errorMessage || '上传失败')
@@ -515,6 +595,7 @@ const handleSubmit = async (isSubmit: boolean) => {
         status: isSubmit ? 1 : 0,
         images: imagesToSend,
         channelId: form.channelId as unknown as number,
+        labels: form.labels,
         publishTime: form.publishTime || undefined
       }
       
@@ -561,6 +642,8 @@ const loadNewsData = async (id: number) => {
       
       form.type = data.type ?? 1
       form.channelId = data.channelId
+      form.labels = data.labels || ''
+      tags.value = form.labels ? form.labels.split(',') : []
       form.status = data.status ?? 0
       form.publishTime = data.publishTime || null
       
