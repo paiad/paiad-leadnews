@@ -16,7 +16,7 @@ public class WmChannelServiceImpl extends ServiceImpl<WmChannelMapper, WmChannel
 
 
     /**
-     * 查询所有频�?
+     * 查询所有频道
      * @return
      */
     @Override

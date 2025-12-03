@@ -8,38 +8,45 @@
     </div>
 
     <div class="filter-card">
-      <el-form :inline="true" :model="queryParams" class="demo-form-inline">
-        <el-form-item label="状态">
-          <el-select v-model="queryParams.status" placeholder="全部状态" clearable class="w-32">
-            <el-option label="草稿" :value="0" />
-            <el-option label="已提交" :value="1" />
-            <el-option label="审核失败" :value="2" />
-            <el-option label="审核通过" :value="3" />
-            <el-option label="已发布" :value="9" />
-          </el-select>
+      <el-form :inline="false" :model="queryParams">
+        <!-- 第一行：状态选择 -->
+        <el-form-item label="状态" class="status-form-item">
+          <el-radio-group v-model="queryParams.status" class="status-radio-group">
+            <el-radio-button :label="null">全部状态</el-radio-button>
+            <el-radio-button :label="0">草稿</el-radio-button>
+            <el-radio-button :label="1">已提交</el-radio-button>
+            <el-radio-button :label="2">审核失败</el-radio-button>
+            <el-radio-button :label="3">审核通过</el-radio-button>
+            <el-radio-button :label="9">已发布</el-radio-button>
+          </el-radio-group>
         </el-form-item>
-        <el-form-item label="关键字">
-          <el-input v-model="queryParams.keyword" placeholder="搜索标题" clearable />
-        </el-form-item>
-        <el-form-item label="频道">
-          <el-select v-model="queryParams.channelId" placeholder="全部频道" clearable filterable>
-            <el-option v-for="channel in channels" :key="channel.id" :label="channel.name" :value="channel.id" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="日期">
-           <el-date-picker
-            v-model="dateRange"
-            type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            @change="handleDateChange"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch" class="search-button">搜索</el-button>
-        </el-form-item>
+        
+        <!-- 第二行：其他筛选条件 -->
+        <div class="filter-row">
+          <el-form-item label="关键字" class="filter-item">
+            <el-input v-model="queryParams.keyword" placeholder="搜索标题" clearable style="width: 200px;" />
+          </el-form-item>
+          <el-form-item label="频道" class="filter-item">
+            <el-select v-model="queryParams.channelId" placeholder="全部频道" clearable filterable style="width: 180px;">
+              <el-option v-for="channel in channels" :key="channel.id" :label="channel.name" :value="channel.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="日期" class="filter-item">
+            <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DDTHH:mm:ss"
+              @change="handleDateChange"
+              style="width: 340px;"
+            />
+          </el-form-item>
+          <el-form-item class="filter-item">
+            <el-button type="primary" @click="handleSearch" class="search-button">搜索</el-button>
+          </el-form-item>
+        </div>
       </el-form>
     </div>
 
@@ -77,9 +84,12 @@
         <el-pagination
           v-model:current-page="queryParams.page"
           v-model:page-size="queryParams.size"
+          :page-sizes="[10, 20, 50]"
           :total="total"
-          layout="total, prev, pager, next"
+          layout="sizes, prev, next"
           background
+          small
+          @size-change="handleSizeChange"
           @current-change="loadNews"
         />
       </div>
@@ -226,6 +236,11 @@ const handleSearch = () => {
   loadNews()
 }
 
+const handleSizeChange = () => {
+  queryParams.page = 1
+  loadNews()
+}
+
 const handleEdit = (id: number) => {
   router.push(`/layout/news/publish?id=${id}`)
 }
@@ -280,10 +295,62 @@ onMounted(() => {
     color: #1d1d1f;
   }
   
+  .status-form-item {
+    margin-bottom: 20px;
+    
+    :deep(.el-form-item__label) {
+      width: 60px;
+    }
+    
+    .status-radio-group {
+      display: flex;
+      gap: 12px;
+      
+      :deep(.el-radio-button__inner) {
+        padding: 6px 16px;
+        border-radius: 20px !important;
+        border: 1px solid transparent;
+        background-color: transparent;
+        color: #86868b;
+        transition: all 0.2s ease;
+        box-shadow: none !important;
+        font-weight: 500;
+      }
+      
+      :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+        background-color: #f5f5f7;
+        color: #1d1d1f;
+        border-color: #e5e5e7;
+        font-weight: 600;
+      }
+      
+      :deep(.el-radio-button__inner:hover) {
+        color: #1d1d1f;
+      }
+    }
+  }
+  
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    
+    .filter-item {
+      margin-bottom: 0;
+      
+      :deep(.el-form-item__label) {
+        width: auto;
+        margin-right: 8px;
+      }
+    }
+  }
+  
   .search-button {
     background-color: #000000;
     border: none;
     border-radius: 6px;
+    padding: 8px 24px;
     
     &:hover {
       background-color: #333333;

@@ -48,14 +48,14 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
      */
     @Override
     public ResponseResult findList(WmNewsPageReqDto dto) {
-        //1.检查参�?
-        //分页检�?
+        //1.检查参?
+        //分页检?
         dto.checkParam();
 
         //2.分页条件查询
         IPage page = new Page(dto.getPage(), dto.getSize());
         LambdaQueryWrapper<WmNews> lambdaQueryWrapper = new LambdaQueryWrapper();
-        //状态精确查�?
+        //状态精确查?
         if (dto.getStatus() != null) {
             lambdaQueryWrapper.eq(WmNews::getStatus, dto.getStatus());
         }
@@ -105,10 +105,10 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
 
-        //1.保存或修改文�?
+        //1.保存或修改文?
 
         WmNews wmNews = new WmNews();
-        //属性拷�?属性名词和类型相同才能拷贝
+        //属性拷?属性名词和类型相同才能拷贝
         BeanUtils.copyProperties(dto,wmNews);
         //封面图片  list---> string
         if(dto.getImages() != null && dto.getImages().size() > 0){
@@ -116,24 +116,24 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             String imageStr = StringUtils.join(dto.getImages(), ",");
             wmNews.setImages(imageStr);
         }
-        //如果当前封面类型为自�?-1
+        //如果当前封面类型为自?-1
         if(dto.getType().equals(WemediaConstants.WM_NEWS_TYPE_AUTO)){
             wmNews.setType(null);
         }
 
         saveOrUpdateWmNews(wmNews);
 
-        //2.判断是否为草�? 如果为草稿结束当前方�?
+        //2.判断是否为草? 如果为草稿结束当前方?
         if(dto.getStatus().equals(WmNews.Status.NORMAL.getCode())){
             return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
         }
 
-        //3.不是草稿，保存文章内容图片与素材的关�?
-        //获取到文章内容中的图片信�?
+        //3.不是草稿，保存文章内容图片与素材的关?
+        //获取到文章内容中的图片信?
         List<String> materials =  ectractUrlInfo(dto.getContent());
         saveRelativeInfoForContent(materials,wmNews.getId());
 
-        //4.不是草稿，保存文章封面图片与素材的关系，如果当前布局是自动，需要匹配封面图�?
+        //4.不是草稿，保存文章封面图片与素材的关系，如果当前布局是自动，需要匹配封面图?
         saveRelativeInfoForCover(dto,wmNews,materials);
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
@@ -142,9 +142,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 第一个功能：如果当前封面类型为自动，则设置封面类型的数据
-     * 匹配规则�?
-     * 1，如果内容图片大于等�?，小�?  单图  type 1
-     * 2，如果内容图片大于等�?  多图  type 3
+     * 匹配规则?
+     * 1，如果内容图片大于等?，小?  单图  type 1
+     * 2，如果内容图片大于等?  多图  type 3
      * 3，如果内容没有图片，无图  type 0
      *
      * 第二个功能：保存封面图片与素材的关系
@@ -198,7 +198,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     private WmMaterialMapper wmMaterialMapper;
 
     /**
-     * 保存文章图片与素材的关系到数据库�?
+     * 保存文章图片与素材的关系到数据库?
      * @param materials
      * @param newsId
      * @param type
@@ -249,11 +249,11 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     private WmNewsMaterialMapper wmNewsMaterialMapper;
 
     /**
-     * 保存或修改文�?
+     * 保存或修改文?
      * @param wmNews
      */
     private void saveOrUpdateWmNews(WmNews wmNews) {
-        //补全属�?
+        //补全属?
         wmNews.setUserId(WmThreadLocalUtil.getUser().getId());
         wmNews.setCreatedTime(new Date());
         wmNews.setSubmitedTime(new Date());

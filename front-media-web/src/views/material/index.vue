@@ -26,6 +26,8 @@
             fit="cover"
             class="material-image"
             loading="lazy"
+            @click="handlePreview(item.url)"
+            style="cursor: pointer;"
           />
           <div class="overlay">
              <div class="overlay-content">
@@ -36,14 +38,14 @@
             <el-button
               circle
               :class="['action-btn', item.isCollection === 1 ? 'collected' : '']"
-              @click="handleCollect(item)"
+              @click.stop="handleCollect(item)"
             >
               <el-icon><StarFilled v-if="item.isCollection === 1" /><Star v-else /></el-icon>
             </el-button>
             <el-button
               circle
               class="action-btn delete-btn"
-              @click="handleDelete(item.id)"
+              @click.stop="handleDelete(item.id)"
             >
               <el-icon><Delete /></el-icon>
             </el-button>
@@ -60,11 +62,22 @@
       <el-pagination
         v-model:current-page="queryParams.page"
         v-model:page-size="queryParams.size"
+        :page-sizes="[10, 20, 50]"
         :total="total"
-        layout="prev, pager, next"
+        layout="sizes, prev, next"
         background
+        small
+        @size-change="handleSizeChange"
         @current-change="loadMaterials"
       />
+    </div>
+    
+    <!-- 图片预览全屏遮罩 -->
+    <div v-if="previewVisible" class="preview-overlay" @click="previewVisible = false">
+      <img :src="previewUrl" class="preview-image" alt="预览" @click.stop />
+      <el-button circle class="close-btn" @click="previewVisible = false">
+        <el-icon><Close /></el-icon>
+      </el-button>
     </div>
   </div>
 </template>
@@ -74,7 +87,10 @@ import { ref, reactive, onMounted } from 'vue'
 import { getMaterialList, uploadPicture, collectMaterial, deleteMaterial } from '@/api/material'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
-import { Picture, Star, StarFilled, Delete } from '@element-plus/icons-vue'
+import { Picture, Star, StarFilled, Delete, Close } from '@element-plus/icons-vue'
+
+const previewVisible = ref(false)
+const previewUrl = ref('')
 
 const loading = ref(false)
 const activeTab = ref('all')
@@ -186,6 +202,16 @@ const handleDelete = async (id: number) => {
       ElMessage.error('删除失败')
     }
   }
+}
+
+const handleSizeChange = () => {
+  queryParams.page = 1
+  loadMaterials()
+}
+
+const handlePreview = (url: string) => {
+  previewUrl.value = getImageUrl(url)
+  previewVisible.value = true
 }
 
 onMounted(() => {
@@ -353,7 +379,47 @@ onMounted(() => {
 
 .pagination-container {
   display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-right: 8px;
+}
+
+.preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.95);
+  display: flex;
   justify-content: center;
-  margin-top: 40px;
+  align-items: center;
+  z-index: 9999;
+  cursor: pointer;
+  
+  .preview-image {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    user-select: none;
+    pointer-events: none;
+  }
+  
+  .close-btn {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: #ffffff;
+      transform: scale(1.1);
+    }
+  }
 }
 </style>

@@ -21,7 +21,7 @@ public class WmUserServiceImpl extends ServiceImpl<WmUserMapper, WmUser> impleme
 
     @Override
     public ResponseResult login(WmLoginDto dto) {
-        //1.检查参�?
+        //1.检查参数
         if(StringUtils.isBlank(dto.getName()) || StringUtils.isBlank(dto.getPassword())){
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID,"用户名或密码为空");
         }
