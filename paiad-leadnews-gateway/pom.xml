@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>paiad-leadnews-app-gateway</module>
+        <module>paiad-leadnews-wemedia-gateway</module>
     </modules>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

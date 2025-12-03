@@ -8,3 +8,7 @@
 
 - **黑马头条（项目入口）**  
   👉 [http://localhost:8801/#/home](http://localhost:8801/#/home)
+
+- **Knife4j Doc**
+  👉 [http://localhost:51801/doc.html](http://localhost:51801/doc.html)
+  👉 [http://localhost:51802/doc.html](http://localhost:51801/doc.html)
