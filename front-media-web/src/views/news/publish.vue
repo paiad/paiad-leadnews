@@ -44,10 +44,10 @@
           </el-select>
         </el-form-item>
 
-        <el-form-item class="form-actions">
+        <div class="form-actions">
           <el-button size="large" @click="handleSubmit(false)" class="draft-button">存草稿</el-button>
           <el-button type="primary" size="large" @click="handleSubmit(true)" class="submit-button">发布</el-button>
-        </el-form-item>
+        </div>
       </el-form>
     </div>
     
@@ -188,6 +188,10 @@ const handleSubmit = async (isSubmit: boolean) => {
 
       const data = {
         ...form,
+        content: JSON.stringify([{
+          type: 'text',
+          value: form.content
+        }]),
         status: isSubmit ? 1 : 0,
         images: imagesToSend,
         channelId: form.channelId as unknown as number
@@ -220,7 +224,27 @@ const loadNewsData = async (id: number) => {
       
       form.id = data.id
       form.title = data.title || ''
-      form.content = data.content || ''
+      
+      // Handle content parsing (JSON array or string)
+      if (data.content) {
+        try {
+          const contentArr = JSON.parse(data.content)
+          if (Array.isArray(contentArr)) {
+            form.content = contentArr
+              .filter((item: any) => item.type === 'text')
+              .map((item: any) => item.value)
+              .join('\n')
+          } else {
+            form.content = data.content
+          }
+        } catch (e) {
+          // If parse fails, treat as simple string
+          form.content = data.content
+        }
+      } else {
+        form.content = ''
+      }
+      
       form.type = data.type ?? 1
       form.channelId = data.channelId
       form.status = data.status ?? 0

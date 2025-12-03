@@ -143,8 +143,8 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     /**
      * 第一个功能：如果当前封面类型为自动，则设置封面类型的数据
      * 匹配规则?
-     * 1，如果内容图片大于等?，小?  单图  type 1
-     * 2，如果内容图片大于等?  多图  type 3
+     * 1，如果内容图片大于等1，小3  单图  type 1
+     * 2，如果内容图片大于等3  多图  type 3
      * 3，如果内容没有图片，无图  type 0
      *
      * 第二个功能：保存封面图片与素材的关系

@@ -1,14 +1,16 @@
 ### 服务访问地址
+- **前端访问地址**
+  1. 👉 [用户端http://localhost:8801/#/login](http://localhost:8801/#/login)
+  2. 👉 [媒体端http://localhost:8802/#/login](http://localhost:8802/#/login)
+  3. 👉 [http://localhost:5173/login](http://localhost:5173/login)
 
 - **Nacos**  
-  👉 [http://localhost:8848/nacos](http://localhost:8848/nacos)
+  👉 [Nacos](http://localhost:8848/nacos)
 
 - **MinIO**  
-  👉 [http://localhost:9000/](http://localhost:9000/)
-
-- **黑马头条（项目入口）**  
-  👉 [http://localhost:8801/#/home](http://localhost:8801/#/home)
+  👉 [MinIO](http://localhost:9000/)
 
 - **Knife4j Doc**
-  👉 [http://localhost:51801/doc.html](http://localhost:51801/doc.html)
-  👉 [http://localhost:51802/doc.html](http://localhost:51801/doc.html)
+  1. 👉 [用户接口文档](http://localhost:51801/doc.html)
+  2. 👉 [文章接口文档](http://localhost:51802/doc.html)
+  3. 👉 [媒体接口文档](http://localhost:51803/doc.html)
