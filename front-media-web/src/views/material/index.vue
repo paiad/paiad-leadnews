@@ -32,6 +32,22 @@
                <span class="date">{{ formatDate(item.createdTime) }}</span>
              </div>
           </div>
+          <div class="actions">
+            <el-button
+              circle
+              :class="['action-btn', item.isCollection === 1 ? 'collected' : '']"
+              @click="handleCollect(item)"
+            >
+              <el-icon><StarFilled v-if="item.isCollection === 1" /><Star v-else /></el-icon>
+            </el-button>
+            <el-button
+              circle
+              class="action-btn delete-btn"
+              @click="handleDelete(item.id)"
+            >
+              <el-icon><Delete /></el-icon>
+            </el-button>
+          </div>
         </div>
       </div>
       <div v-else class="empty-state">
@@ -55,10 +71,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getMaterialList, uploadPicture } from '@/api/material'
-import { ElMessage } from 'element-plus'
+import { getMaterialList, uploadPicture, collectMaterial, deleteMaterial } from '@/api/material'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
-import { Picture } from '@element-plus/icons-vue'
+import { Picture, Star, StarFilled, Delete } from '@element-plus/icons-vue'
 
 const loading = ref(false)
 const activeTab = ref('all')
@@ -136,6 +152,41 @@ const handleUpload = async (options: UploadRequestOptions) => {
   }
 }
 
+const handleCollect = async (item: any) => {
+  try {
+    const res = await collectMaterial(item.id)
+    if (res.code === 200 && res.data) {
+      item.isCollection = res.data.isCollection
+      ElMessage.success(item.isCollection === 1 ? '已收藏' : '已取消收藏')
+    } else {
+      ElMessage.error(res.errorMessage || '操作失败')
+    }
+  } catch (error) {
+    ElMessage.error('操作失败')
+  }
+}
+
+const handleDelete = async (id: number) => {
+  try {
+    await ElMessageBox.confirm('确定要删除这个素材吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    const res = await deleteMaterial(id)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadMaterials()
+    } else {
+      ElMessage.error(res.errorMessage || '删除失败')
+    }
+  } catch (error: any) {
+    if (error !== 'cancel') {
+      ElMessage.error('删除失败')
+    }
+  }
+}
 
 onMounted(() => {
   loadMaterials()
@@ -216,6 +267,10 @@ onMounted(() => {
     .overlay {
       opacity: 1;
     }
+    
+    .actions {
+      opacity: 1;
+    }
   }
   
   .material-image {
@@ -238,6 +293,45 @@ onMounted(() => {
       color: white;
       font-size: 12px;
       font-weight: 500;
+    }
+  }
+  
+  .actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 8px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      background-color: rgba(255, 255, 255, 0.9);
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      
+      &:hover {
+        background-color: #ffffff;
+        transform: scale(1.1);
+      }
+      
+      &.collected {
+        color: #ff4d4f;
+        
+        &:hover {
+          color: #ff7875;
+        }
+      }
+      
+      &.delete-btn {
+        &:hover {
+          color: #ff4d4f;
+          background-color: #fff1f0;
+        }
+      }
     }
   }
 }

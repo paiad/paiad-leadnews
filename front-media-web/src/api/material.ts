@@ -30,3 +30,25 @@ export function uploadPicture(data: FormData) {
     return res
   }) as unknown as Promise<ResponseResult>
 }
+
+export function collectMaterial(id: number) {
+  console.log('[API] collectMaterial request:', id)
+  return request({
+    url: `/api/v1/material/collect/${id}`,
+    method: 'post'
+  }).then((res: any) => {
+    console.log('[API] collectMaterial response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}
+
+export function deleteMaterial(id: number) {
+  console.log('[API] deleteMaterial request:', id)
+  return request({
+    url: `/api/v1/material/del/${id}`,
+    method: 'delete'
+  }).then((res: any) => {
+    console.log('[API] deleteMaterial response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}
