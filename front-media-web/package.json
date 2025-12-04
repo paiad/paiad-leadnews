@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.14",
+    "@iconify-json/majesticons": "^1.2.4",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/tsconfig": "^0.8.1",

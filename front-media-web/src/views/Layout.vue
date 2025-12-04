@@ -35,8 +35,11 @@
       <el-header class="header">
         <div class="header-content">
           <div class="user-info">
-            <span class="username">{{ userStore.user.name || '用户' }}</span>
-            <el-button type="info" link @click="logout" class="logout-btn">退出登录</el-button>
+            <el-avatar :size="24" :src="userStore.user.image" class="user-avatar">
+              <span>{{ (userStore.user.nickname || '用户').charAt(0) }}</span>
+            </el-avatar>
+            <span class="username">{{ userStore.user.nickname || '用户' }}</span>
+            <span class="logout-btn i-majesticons-logout-half-circle-line" @click="logout" title="退出登录"></span>
           </div>
         </div>
       </el-header>
@@ -127,7 +130,14 @@ const logout = () => {
     .user-info {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
+      
+      .user-avatar {
+        background-color: #ffffff;
+        color: white;
+        font-weight: 500;
+        font-size: px;
+      }
       
       .username {
         font-weight: 500;
@@ -135,11 +145,13 @@ const logout = () => {
       }
       
       .logout-btn {
-        font-size: 13px;
+        font-size: 18px;
         color: #86868b;
+        cursor: pointer;
+        transition: color 0.2s;
         
         &:hover {
-          color: #1d1d1f;
+          color: #000000;
         }
       }
     }

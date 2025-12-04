@@ -46,43 +46,44 @@
           @open-material="openMaterialForCover"
         />
 
-        <!-- 频道 -->
-        <el-form-item label="频道" prop="channelId">
-          <el-select
-            v-model="form.channelId"
-            placeholder="请选择频道"
-            class="custom-select w-full"
-          >
-            <el-option
-              v-for="channel in channels"
-              :key="channel.id"
-              :label="channel.name"
-              :value="channel.id"
-            />
-          </el-select>
-        </el-form-item>
-
-        <!-- 标签 -->
+        <!-- 标签 - 单独一行 -->
         <el-form-item label="标签" prop="labels">
           <TagInput v-model="tags" />
         </el-form-item>
 
-        <!-- 定时发布 -->
-        <el-form-item prop="publishTime">
-          <template #label>
-            <span class="font-medium text-gray-900">定时发布</span>
-            <span class="text-xs text-gray-400 ml-2 font-normal">默认为立即发布</span>
-          </template>
-          <el-date-picker
-            v-model="form.publishTime"
-            type="datetime"
-            placeholder="选择发布时间"
-            class="custom-select w-full"
-            format="YYYY-MM-DD HH:mm:ss"
-            value-format="YYYY-MM-DD HH:mm:ss"
-            :disabled-date="disabledDate"
-          />
-        </el-form-item>
+        <!-- 频道、定时发布 - 同一行 -->
+        <div class="form-row">
+          <el-form-item label="频道" prop="channelId" class="form-row-item">
+            <el-select
+              v-model="form.channelId"
+              placeholder="请选择频道"
+              class="custom-select w-full"
+            >
+              <el-option
+                v-for="channel in channels"
+                :key="channel.id"
+                :label="channel.name"
+                :value="channel.id"
+              />
+            </el-select>
+          </el-form-item>
+
+          <el-form-item prop="publishTime" class="form-row-item">
+            <template #label>
+              <span class="font-medium text-gray-900">定时发布</span>
+              <span class="text-xs text-gray-400 ml-2 font-normal">默认立即</span>
+            </template>
+            <el-date-picker
+              v-model="form.publishTime"
+              type="datetime"
+              placeholder="选择发布时间"
+              class="custom-select w-full"
+              format="YYYY-MM-DD HH:mm:ss"
+              value-format="YYYY-MM-DD HH:mm:ss"
+              :disabled-date="disabledDate"
+            />
+          </el-form-item>
+        </div>
 
         <!-- 操作按钮 -->
         <div class="mt-12 flex justify-end gap-4">
@@ -378,6 +379,17 @@ onMounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.form-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 8px;
+}
+
+.form-row-item {
+  flex: 1;
+  min-width: 0;
 }
 
 .publish-form :deep(.el-form-item__label) {

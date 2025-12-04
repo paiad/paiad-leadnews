@@ -3,6 +3,25 @@
     <div class="page-header">
       <h1 class="page-title">素材库</h1>
       <div class="header-actions">
+        <el-upload
+          class="upload-demo"
+          action=""
+          :http-request="handleBatchUpload"
+          :show-file-list="false"
+          accept="image/*"
+          :multiple="true"
+        >
+          <el-button type="primary" class="action-button">上传图片</el-button>
+        </el-upload>
+      </div>
+    </div>
+
+    <div class="tabs-row">
+      <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="custom-tabs">
+        <el-tab-pane label="全部图片" name="all"></el-tab-pane>
+        <el-tab-pane label="收藏" name="favorite"></el-tab-pane>
+      </el-tabs>
+      <div class="tabs-actions">
         <el-button 
           v-if="!isEditMode"
           type="default" 
@@ -19,23 +38,8 @@
         >
           完成
         </el-button>
-        <el-upload
-          class="upload-demo"
-          action=""
-          :http-request="handleBatchUpload"
-          :show-file-list="false"
-          accept="image/*"
-          :multiple="true"
-        >
-          <el-button type="primary" class="action-button">上传图片</el-button>
-        </el-upload>
       </div>
     </div>
-
-    <el-tabs v-model="activeTab" @tab-change="handleTabChange" class="custom-tabs">
-      <el-tab-pane label="全部图片" name="all"></el-tab-pane>
-      <el-tab-pane label="收藏" name="favorite"></el-tab-pane>
-    </el-tabs>
 
     <div class="content-area" v-loading="loading">
       <div v-if="materialList.length > 0" class="material-grid">
@@ -385,29 +389,6 @@ onMounted(() => {
     align-items: center;
   }
   
-  .manage-btn {
-    border-radius: 8px;
-    font-weight: 500;
-    border-color: #e5e5e7;
-    
-    &:hover {
-      border-color: #000000;
-      color: #000000;
-    }
-  }
-  
-  .done-btn {
-    border-radius: 8px;
-    font-weight: 500;
-    background-color: #000000;
-    border-color: #000000;
-    
-    &:hover {
-      background-color: #333333;
-      border-color: #333333;
-    }
-  }
-  
   .action-button {
     background-color: #000000;
     border: none;
@@ -421,12 +402,47 @@ onMounted(() => {
   }
 }
 
-.custom-tabs {
+.tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
   margin-bottom: 24px;
+  border-bottom: 1px solid #e5e5e5;
+  
+  .tabs-actions {
+    margin-bottom: 8px;
+    
+    .manage-btn {
+      border-radius: 8px;
+      font-weight: 500;
+      border-color: #e5e5e7;
+      
+      &:hover {
+        border-color: #000000;
+        color: #000000;
+      }
+    }
+    
+    .done-btn {
+      border-radius: 8px;
+      font-weight: 500;
+      background-color: #000000;
+      border-color: #000000;
+      
+      &:hover {
+        background-color: #333333;
+        border-color: #333333;
+      }
+    }
+  }
+}
+
+.custom-tabs {
+  flex: 1;
+  margin-bottom: 0;
   
   :deep(.el-tabs__nav-wrap::after) {
-    height: 1px;
-    background-color: #e5e5e5;
+    display: none;
   }
   
   :deep(.el-tabs__item) {

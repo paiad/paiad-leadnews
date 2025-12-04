@@ -21,12 +21,12 @@
       </el-table-column>
 
       <!-- 状态列 -->
-      <el-table-column label="状态" width="120">
+      <el-table-column label="状态" width="120" align="center">
         <template #header>
-          <div class="pl-4">状态</div>
+          <div>状态</div>
         </template>
         <template #default="{ row }">
-          <el-tag :type="getStatusType(row.status)" effect="plain" round>
+          <el-tag :type="getStatusType(row.status)" effect="plain" round class="status-tag">
             {{ getStatusLabel(row.status) }}
           </el-tag>
         </template>
@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { NewsItem } from '@/types/news'
 import { getStatusLabel, getStatusType, formatDate } from '@/utils/format'
 import NewsTitleCell from './NewsTitleCell.vue'
@@ -153,9 +153,15 @@ const handleSizeChange = (val: number) => {
   emit('size-change', val)
 }
 
-// 暴露 tableRef 供父组件使用
-const tableRef = defineModel<any>('tableRef')
-defineExpose({ tableRef })
+// el-table 的引用
+const tableRef = ref()
+
+// 暴露 clearSelection 方法供父组件使用
+defineExpose({
+  clearSelection: () => {
+    tableRef.value?.clearSelection()
+  }
+})
 </script>
 
 <style scoped>
@@ -164,6 +170,7 @@ defineExpose({ tableRef })
   font-weight: 500;
   border-color: #e5e5e7;
   background-color: #ffffff;
+  margin-bottom: 5px;
 }
 
 .manage-btn:hover {
@@ -182,5 +189,11 @@ defineExpose({ tableRef })
 .done-btn:hover {
   background-color: #333333;
   border-color: #333333;
+}
+
+.status-tag {
+  min-width: 70px;
+  text-align: center;
+  justify-content: center;
 }
 </style>

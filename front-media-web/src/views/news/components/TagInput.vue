@@ -1,17 +1,17 @@
 <template>
   <div
-    class="min-h-12 flex flex-wrap gap-2 px-3 py-2 bg-gray-100 rounded-xl border border-transparent transition-all focus-within:bg-white focus-within:border-black focus-within:shadow-sm w-full cursor-text items-center"
+    class="tag-input-container"
     @click="focusInput"
   >
     <!-- 标签列表 -->
     <div
       v-for="(tag, index) in modelValue"
       :key="index"
-      class="bg-white border border-gray-200 px-2.5 py-1 rounded-md text-sm text-gray-900 flex items-center gap-1.5 shadow-sm"
+      class="tag-item"
     >
       <span>{{ tag }}</span>
       <el-icon
-        class="cursor-pointer text-gray-400 hover:text-gray-900 transition-colors text-xs"
+        class="tag-close"
         @click.stop="removeTag(tag)"
       >
         <Close />
@@ -22,7 +22,7 @@
     <input
       ref="inputRef"
       v-model="inputValue"
-      class="bg-transparent border-none outline-none flex-1 min-w-20 h-full text-sm text-gray-900 placeholder:text-gray-400"
+      class="tag-input"
       placeholder="输入标签..."
       @keydown.enter.prevent="confirmInput"
       @keydown.backspace="handleBackspace"
@@ -76,3 +76,69 @@ const handleBackspace = () => {
   }
 }
 </script>
+
+<style scoped>
+.tag-input-container {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 12px;
+  background-color: #f5f5f7;
+  border: 1px solid #d1d1d6;
+  border-radius: 10px;
+  cursor: text;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.tag-input-container:focus-within {
+  background-color: white;
+  border-color: #1d1d1f;
+}
+
+.tag-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  background-color: #e8e8ed;
+  border-radius: 13px;
+  font-size: 13px;
+  color: #1d1d1f;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tag-close {
+  cursor: pointer;
+  color: #86868b;
+  font-size: 11px;
+  transition: color 0.15s;
+  margin-left: 2px;
+}
+
+.tag-close:hover {
+  color: #ff3b30;
+}
+
+.tag-input {
+  flex: 1;
+  min-width: 80px;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: #1d1d1f;
+}
+
+.tag-input::placeholder {
+  color: #86868b;
+}
+</style>
+
