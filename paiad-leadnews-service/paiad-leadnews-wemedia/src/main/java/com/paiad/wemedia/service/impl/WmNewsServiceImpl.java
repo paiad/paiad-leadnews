@@ -22,6 +22,7 @@ import com.paiad.wemedia.mapper.WmNewsMapper;
 import com.paiad.wemedia.mapper.WmNewsMaterialMapper;
 import com.paiad.wemedia.service.WmNewsAutoScanService;
 import com.paiad.wemedia.service.WmNewsService;
+import com.paiad.wemedia.service.WmNewsTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -95,9 +96,12 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
     @Autowired
     private WmNewsAutoScanService wmNewsAutoScanService;
 
+    @Autowired
+    private WmNewsTaskService wmNewsTaskService;
+
     /**
      * 发布修改文章或保存为草稿
-     * 
+     *
      * @param dto
      * @return
      */
@@ -147,7 +151,8 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
             public void afterCommit() {
                 // 事务提交后再触发异步审核，确保数据已经持久化
                 log.info("事务已提交，开始异步审核文章，ID: {}", newsId);
-                wmNewsAutoScanService.autoScanWmNews(newsId);
+//                wmNewsAutoScanService.autoScanWmNews(newsId);
+                wmNewsTaskService.addNewsToTask(wmNews.getId(), wmNews.getPublishTime());
             }
         });
 
@@ -163,7 +168,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
      * 3，如果内容没有图片，无图 type 0
      *
      * 第二个功能：保存封面图片与素材的关系
-     * 
+     *
      * @param dto
      * @param wmNews
      * @param materials
@@ -201,7 +206,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 处理文章内容图片与素材的关系
-     * 
+     *
      * @param materials
      * @param newsId
      */
@@ -214,7 +219,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 保存文章图片与素材的关系到数据库中
-     * 
+     *
      * @param materials
      * @param newsId
      * @param type
@@ -245,7 +250,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 提取文章内容中的图片信息
-     * 
+     *
      * @param content
      * @return
      */
@@ -268,7 +273,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 保存或修改文章
-     * 
+     *
      * @param wmNews
      */
     private void saveOrUpdateWmNews(WmNews wmNews) {
@@ -301,7 +306,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 根据ID获取文章详情
-     * 
+     *
      * @param id 文章ID
      * @return
      */
@@ -332,7 +337,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 删除文章
-     * 
+     *
      * @param id 文章ID
      * @return
      */
@@ -372,7 +377,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     /**
      * 批量删除文章
-     * 
+     *
      * @param ids 文章ID列表
      * @return
      */
