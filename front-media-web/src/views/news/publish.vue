@@ -696,7 +696,7 @@ onMounted(() => {
   margin-bottom: 32px;
   
   .page-title {
-    font-size: 32px;
+    font-size: 24px;
     font-weight: 700;
     color: #1d1d1f;
     margin: 0;
@@ -802,7 +802,7 @@ onMounted(() => {
   width: fit-content;
   
   .type-option {
-    padding: 8px 24px;
+    padding: 0px 20px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
