@@ -25,6 +25,10 @@
           <el-icon><Picture /></el-icon>
           <span>素材管理</span>
         </el-menu-item>
+        <el-menu-item index="/layout/channel">
+          <el-icon><Menu /></el-icon>
+          <span>频道管理</span>
+        </el-menu-item>
         <el-menu-item index="/layout/links">
           <el-icon><Link /></el-icon>
           <span>链接速览</span>
@@ -53,7 +57,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { HomeFilled, Document, Picture, Edit, Link } from '@element-plus/icons-vue'
+import { HomeFilled, Document, Picture, Edit, Link, Menu } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()

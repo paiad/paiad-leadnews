@@ -45,7 +45,7 @@ public class WmNewsTaskServiceImpl implements WmNewsTaskService {
     private WmNewsAutoScanService wmNewsAutoScanService;
     //审核文章
     @Override
-    @Scheduled(fixedRate = 5 * 60 * 1000)
+    @Scheduled(fixedRate = 5 * 60 * 1000)// 5min
     public void scanNewsByTask() {
         log.info("消费任务，审核文章");
         ResponseResult responseResult = scheduleClient.poll(TaskTypeEnum.NEWS_SCAN_TIME.getTaskType(), TaskTypeEnum.NEWS_SCAN_TIME.getPriority());

@@ -28,6 +28,11 @@ const router = createRouter({
           component: () => import('@/views/material/index.vue')
         },
         {
+          path: 'channel',
+          name: 'channel',
+          component: () => import('@/views/channel/index.vue')
+        },
+        {
           path: 'news/index',
           name: 'news-list',
           component: () => import('@/views/news/index.vue')
