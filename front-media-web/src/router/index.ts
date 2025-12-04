@@ -36,6 +36,11 @@ const router = createRouter({
           path: 'news/publish',
           name: 'news-publish',
           component: () => import('@/views/news/publish.vue')
+        },
+        {
+          path: 'links',
+          name: 'links',
+          component: () => import('@/views/links/index.vue')
         }
       ]
     }
