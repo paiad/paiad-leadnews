@@ -6,6 +6,7 @@ import com.paiad.article.mapper.ApArticleConfigMapper;
 import com.paiad.article.mapper.ApArticleContentMapper;
 import com.paiad.article.mapper.ApArticleMapper;
 import com.paiad.article.service.ApArticleService;
+import com.paiad.article.service.ArticleFreemarkerService;
 import com.paiad.common.constants.ArticleConstants;
 import com.paiad.model.article.dtos.ArticleDto;
 import com.paiad.model.article.dtos.ArticleHomeDto;
@@ -16,6 +17,7 @@ import com.paiad.model.common.dtos.ResponseResult;
 import com.paiad.model.common.enums.AppHttpCodeEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.net.nntp.Article;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -78,6 +80,9 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
     @Autowired
     private ApArticleContentMapper apArticleContentMapper;
 
+    @Autowired
+    private ArticleFreemarkerService articleFreemarkerService;
+
     /**
      * 保存app端相关文章
      * @param dto
@@ -121,6 +126,8 @@ public class ApArticleServiceImpl extends ServiceImpl<ApArticleMapper, ApArticle
             apArticleContent.setContent(dto.getContent());
             apArticleContentMapper.updateById(apArticleContent);
         }
+
+        articleFreemarkerService.buildArticleToMinIO(apArticle, dto.getContent());
 
         //3.结果返回  文章的id
         return ResponseResult.okResult(apArticle.getId());

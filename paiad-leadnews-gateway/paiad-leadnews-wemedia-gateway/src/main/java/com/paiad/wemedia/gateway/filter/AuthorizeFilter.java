@@ -24,7 +24,7 @@ public class AuthorizeFilter implements Ordered, GlobalFilter {
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
 
-        //2.判断是否是登�?
+        //2.判断是否是登录?
         if(request.getURI().getPath().contains("/login")){
             //放行
             return chain.filter(exchange);
@@ -42,7 +42,7 @@ public class AuthorizeFilter implements Ordered, GlobalFilter {
         //5.判断token是否有效
         try {
             Claims claimsBody = AppJwtUtil.getClaimsBody(token);
-            //是否是过�?
+            //是否是过�?
             int result = AppJwtUtil.verifyToken(claimsBody);
             if(result == 1 || result  == 2){
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -51,7 +51,7 @@ public class AuthorizeFilter implements Ordered, GlobalFilter {
             //获取用户信息
             Object userId = claimsBody.get("id");
 
-            //存储header�?
+            //存储header?
             ServerHttpRequest serverHttpRequest = request.mutate().headers(httpHeaders -> {
                 httpHeaders.add("userId", userId + "");
             }).build();
@@ -67,7 +67,7 @@ public class AuthorizeFilter implements Ordered, GlobalFilter {
     }
 
     /**
-     * 优先级设�? 值越�? 优先级越�?
+     * 优先级设? 值越? 优先级越�?
      * @return
      */
     @Override

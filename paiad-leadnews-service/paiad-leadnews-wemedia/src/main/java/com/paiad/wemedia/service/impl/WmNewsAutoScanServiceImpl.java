@@ -57,7 +57,7 @@ public class WmNewsAutoScanServiceImpl implements WmNewsAutoScanService {
      * @param id 自媒体文章id
      */
     @Override
-    @Async // 标明当前方法是一个异步方法
+    @Async // 异步执行审核，配合TransactionSynchronization确保事务已提交
     public void autoScanWmNews(Integer id) {
         log.info("开始自动审核文章,文章ID: {}", id);
 

@@ -28,6 +28,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -138,8 +140,16 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         // 4.不是草稿，保存文章封面图片与素材的关系，如果当前布局是自动，需要匹配封面图片
         saveRelativeInfoForCover(dto, wmNews, materials);
 
-        // 审核文章
-        wmNewsAutoScanService.autoScanWmNews(wmNews.getId());
+        // 审核文章 - 在事务提交后异步执行
+        final Integer newsId = wmNews.getId();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                // 事务提交后再触发异步审核，确保数据已经持久化
+                log.info("事务已提交，开始异步审核文章，ID: {}", newsId);
+                wmNewsAutoScanService.autoScanWmNews(newsId);
+            }
+        });
 
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
 
