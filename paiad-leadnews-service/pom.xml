@@ -15,6 +15,7 @@
         <module>paiad-leadnews-user</module>
         <module>paiad-leadnews-article</module>
         <module>paiad-leadnews-wemedia</module>
+        <module>paiad-leadnews-schedule</module>
     </modules>
 
     <properties>

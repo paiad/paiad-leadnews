@@ -1,4 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.paiad.common.exception.ExceptionCatch,\
   com.paiad.common.swagger.SwaggerConfiguration,\
-  com.paiad.common.swagger.Swagger2Configuration
+  com.paiad.common.swagger.Swagger2Configuration,\
+  com.paiad.common.redis.CacheService

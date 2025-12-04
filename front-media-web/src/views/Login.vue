@@ -177,7 +177,7 @@ const handleLogin = async () => {
     .logo-icon {
       width: 48px;
       height: 48px;
-      background: linear-gradient(135deg, #000000 0%, #333333 100%);
+      background: white;
       border-radius: 12px;
       display: flex;
       align-items: center;
