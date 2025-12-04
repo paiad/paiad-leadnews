@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.UUID;
 
-
 @Slf4j
 @Service
 @Transactional
@@ -39,75 +38,76 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
 
     /**
      * 图片上传
+     * 
      * @param multipartFile
      * @return
      */
     @Override
     public ResponseResult uploadPicture(MultipartFile multipartFile) {
 
-        //1.检查参数
-        if(multipartFile == null || multipartFile.getSize() == 0){
+        // 1.检查参数
+        if (multipartFile == null || multipartFile.getSize() == 0) {
             return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
         }
 
-        //2.上传图片到minIO中
+        // 2.上传图片到minIO中
         String fileName = UUID.randomUUID().toString().replace("-", "");
-        //aa.jpg
+        // aa.jpg
         String originalFilename = multipartFile.getOriginalFilename();
         String postfix = originalFilename.substring(originalFilename.lastIndexOf("."));
         String fileId = null;
         try {
             fileId = fileStorageService.uploadImgFile("", fileName + postfix, multipartFile.getInputStream());
-            log.info("上传图片到MinIO中，fileId:{}",fileId);
+            log.info("上传图片到MinIO中，fileId:{}", fileId);
         } catch (IOException e) {
             e.printStackTrace();
             log.error("WmMaterialServiceImpl-上传文件失败");
         }
 
-        //3.保存到数据库中
+        // 3.保存到数据库中
         WmMaterial wmMaterial = new WmMaterial();
         wmMaterial.setUserId(WmThreadLocalUtil.getUser().getId());
         wmMaterial.setUrl(fileId);
-        wmMaterial.setIsCollection((short)0);
-        wmMaterial.setType((short)0);
+        wmMaterial.setIsCollection((short) 0);
+        wmMaterial.setType((short) 0);
         wmMaterial.setCreatedTime(new Date());
         save(wmMaterial);
 
-        //4.返回结果
+        // 4.返回结果
 
         return ResponseResult.okResult(wmMaterial);
     }
 
     /**
      * 素材列表查询
+     * 
      * @param dto
      * @return
      */
     @Override
     public ResponseResult findList(WmMaterialDto dto) {
 
-        //1.检查参数
+        // 1.检查参数
         dto.checkParam();
 
-        //2.分页查询
-        IPage page = new Page(dto.getPage(),dto.getSize());
+        // 2.分页查询
+        IPage page = new Page(dto.getPage(), dto.getSize());
         LambdaQueryWrapper<WmMaterial> lambdaQueryWrapper = new LambdaQueryWrapper<>();
-        //是否收藏
-        if(dto.getIsCollection() != null && dto.getIsCollection() == 1){
-            lambdaQueryWrapper.eq(WmMaterial::getIsCollection,dto.getIsCollection());
+        // 是否收藏
+        if (dto.getIsCollection() != null && dto.getIsCollection() == 1) {
+            lambdaQueryWrapper.eq(WmMaterial::getIsCollection, dto.getIsCollection());
         }
 
-        //按照用户查询
-        lambdaQueryWrapper.eq(WmMaterial::getUserId,WmThreadLocalUtil.getUser().getId());
+        // 按照用户查询
+        lambdaQueryWrapper.eq(WmMaterial::getUserId, WmThreadLocalUtil.getUser().getId());
 
-        //按照时间倒序
+        // 按照时间倒序
         lambdaQueryWrapper.orderByDesc(WmMaterial::getCreatedTime);
 
+        page = page(page, lambdaQueryWrapper);
 
-        page = page(page,lambdaQueryWrapper);
-
-        //3.结果返回
-        ResponseResult responseResult = new PageResponseResult(dto.getPage(),dto.getSize(),(int)page.getTotal());
+        // 3.结果返回
+        ResponseResult responseResult = new PageResponseResult(dto.getPage(), dto.getSize(), (int) page.getTotal());
         responseResult.setData(page.getRecords());
         return responseResult;
     }
@@ -187,5 +187,83 @@ public class WmMaterialServiceImpl extends ServiceImpl<WmMaterialMapper, WmMater
 
         // 6.返回结果
         return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 批量删除素材
+     *
+     * @param ids 素材ID列表
+     * @return
+     */
+    @Override
+    public ResponseResult batchDeleteMaterial(java.util.List<Integer> ids) {
+        // 1.检查参数
+        if (ids == null || ids.isEmpty()) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.逐个删除素材
+        int successCount = 0;
+        int failCount = 0;
+        for (Integer id : ids) {
+            ResponseResult result = delPicture(id);
+            if (result.getCode() == AppHttpCodeEnum.SUCCESS.getCode()) {
+                successCount++;
+            } else {
+                failCount++;
+                log.warn("删除素材失败，ID: {}, 原因: {}", id, result.getErrorMessage());
+            }
+        }
+
+        // 3.返回结果
+        if (failCount == 0) {
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+        } else if (successCount == 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "所有素材删除失败");
+        } else {
+            return ResponseResult.okResult("成功删除 " + successCount + " 个素材，" + failCount + " 个删除失败");
+        }
+    }
+
+    /**
+     * 批量上传素材
+     *
+     * @param multipartFiles 素材文件数组
+     * @return
+     */
+    @Override
+    public ResponseResult batchUploadPictures(org.springframework.web.multipart.MultipartFile[] multipartFiles) {
+        // 1.检查参数
+        if (multipartFiles == null || multipartFiles.length == 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.逐个上传素材
+        java.util.List<WmMaterial> uploadedMaterials = new java.util.ArrayList<>();
+        int successCount = 0;
+        int failCount = 0;
+        for (org.springframework.web.multipart.MultipartFile file : multipartFiles) {
+            ResponseResult result = uploadPicture(file);
+            if (result.getCode() == AppHttpCodeEnum.SUCCESS.getCode()) {
+                successCount++;
+                if (result.getData() != null) {
+                    uploadedMaterials.add((WmMaterial) result.getData());
+                }
+            } else {
+                failCount++;
+                log.warn("上传素材失败，文件名: {}, 原因: {}", file.getOriginalFilename(), result.getErrorMessage());
+            }
+        }
+
+        // 3.返回结果
+        if (failCount == 0) {
+            return ResponseResult.okResult(uploadedMaterials);
+        } else if (successCount == 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "所有素材上传失败");
+        } else {
+            ResponseResult response = ResponseResult.okResult(uploadedMaterials);
+            response.setErrorMessage("成功上传 " + successCount + " 个素材，" + failCount + " 个上传失败");
+            return response;
+        }
     }
 }

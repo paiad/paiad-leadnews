@@ -10,6 +10,7 @@ public interface WmMaterialService extends IService<WmMaterial> {
 
     /**
      * 图片上传
+     * 
      * @param multipartFile
      * @return
      */
@@ -17,10 +18,11 @@ public interface WmMaterialService extends IService<WmMaterial> {
 
     /**
      * 素材列表查询
+     * 
      * @param dto
      * @return
      */
-    public ResponseResult findList( WmMaterialDto dto);
+    public ResponseResult findList(WmMaterialDto dto);
 
     /**
      * 收藏/取消收藏素材
@@ -37,5 +39,21 @@ public interface WmMaterialService extends IService<WmMaterial> {
      * @return
      */
     public ResponseResult delPicture(Integer id);
+
+    /**
+     * 批量删除素材
+     *
+     * @param ids 素材ID列表
+     * @return
+     */
+    public ResponseResult batchDeleteMaterial(java.util.List<Integer> ids);
+
+    /**
+     * 批量上传素材
+     *
+     * @param multipartFiles 素材文件数组
+     * @return
+     */
+    public ResponseResult batchUploadPictures(MultipartFile[] multipartFiles);
 
 }

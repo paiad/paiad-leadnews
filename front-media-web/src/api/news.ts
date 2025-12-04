@@ -6,10 +6,7 @@ export function getNewsList(data: WmNewsPageReqDto) {
   return request({
     url: '/api/v1/news/list',
     method: 'post',
-    data: {
-      ...data,
-      page: data.page > 0 ? data.page - 1 : 0
-    }
+    data: data
   }).then((res: any) => {
     console.log('[API] getNewsList response:', res)
     return res

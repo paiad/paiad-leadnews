@@ -2,22 +2,6 @@
   <div class="page-container">
     <div class="page-header">
       <h1 class="page-title">内容管理</h1>
-      <el-button 
-        v-if="!isEditMode"
-        type="default" 
-        @click="enterEditMode"
-        class="manage-btn"
-      >
-        管理
-      </el-button>
-      <el-button 
-        v-else
-        type="primary" 
-        @click="exitEditMode"
-        class="done-btn"
-      >
-        完成
-      </el-button>
     </div>
 
     <div class="filter-card">
@@ -90,13 +74,16 @@
               >
                 <template #error>
                   <div class="image-error">
-                    <i class="el-icon-picture-outline"></i>
+                    <el-icon><Picture /></el-icon>
                   </div>
                 </template>
               </el-image>
-              <div v-else class="title-cover-placeholder">
-                <i class="el-icon-picture-outline"></i>
-              </div>
+              <el-image
+                v-else
+                src="https://cdn.jsdelivr.net/gh/paiad/picture-bed@main/img/no-img.png"
+                class="title-cover-image"
+                fit="cover"
+              />
               <div class="title-text">{{ scope.row.title }}</div>
             </div>
           </template>
@@ -117,7 +104,29 @@
                 {{ formatDate(scope.row.publishTime) }}
             </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column width="150" fixed="right">
+          <template #header>
+            <div style="text-align: right; padding-right: 70px;">
+              <el-button 
+                v-if="!isEditMode"
+                type="default" 
+                size="small"
+                @click="enterEditMode"
+                class="column-manage-btn"
+              >
+                管理
+              </el-button>
+              <el-button 
+                v-else
+                type="primary" 
+                size="small"
+                @click="exitEditMode"
+                class="column-done-btn"
+              >
+                完成
+              </el-button>
+            </div>
+          </template>
           <template #default="scope">
             <el-button link type="primary" size="small" @click="handleEdit(scope.row.id)" class="edit-link">编辑</el-button>
             <el-button link type="danger" size="small" @click="handleDelete(scope.row)" class="delete-link">删除</el-button>
@@ -398,28 +407,30 @@ onMounted(() => {
     color: #1d1d1f;
     margin: 0;
   }
+}
+
+.column-manage-btn {
+  border-radius: 6px;
+  font-weight: 500;
+  border-color: #e5e5e7;
+  background-color: #ffffff;
   
-  .manage-btn {
-    border-radius: 8px;
-    font-weight: 500;
-    border-color: #e5e5e7;
-    
-    &:hover {
-      border-color: #000000;
-      color: #000000;
-    }
-  }
-  
-  .done-btn {
-    border-radius: 8px;
-    font-weight: 500;
-    background-color: #000000;
+  &:hover {
     border-color: #000000;
-    
-    &:hover {
-      background-color: #333333;
-      border-color: #333333;
-    }
+    color: #000000;
+  }
+}
+
+.column-done-btn {
+  border-radius: 6px;
+  font-weight: 500;
+  background-color: #000000;
+  border-color: #000000;
+  color: #ffffff;
+  
+  &:hover {
+    background-color: #333333;
+    border-color: #333333;
   }
 }
 

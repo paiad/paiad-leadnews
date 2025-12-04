@@ -15,14 +15,13 @@ public class WmMaterialController {
     @Autowired
     private WmMaterialService wmMaterialService;
 
-
     @PostMapping("/upload_picture")
-    public ResponseResult uploadPicture(MultipartFile multipartFile){
+    public ResponseResult uploadPicture(MultipartFile multipartFile) {
         return wmMaterialService.uploadPicture(multipartFile);
     }
 
     @PostMapping("/list")
-    public ResponseResult findList(@RequestBody WmMaterialDto dto){
+    public ResponseResult findList(@RequestBody WmMaterialDto dto) {
         return wmMaterialService.findList(dto);
     }
 
@@ -36,5 +35,17 @@ public class WmMaterialController {
     @DeleteMapping("/del/{id}")
     public ResponseResult delPicture(@PathVariable Integer id) {
         return wmMaterialService.delPicture(id);
+    }
+
+    @ApiOperation("批量删除素材")
+    @PostMapping("/del/batch")
+    public ResponseResult batchDeleteMaterial(@RequestBody java.util.List<Integer> ids) {
+        return wmMaterialService.batchDeleteMaterial(ids);
+    }
+
+    @ApiOperation("批量上传素材")
+    @PostMapping("/upload_pictures")
+    public ResponseResult batchUploadPictures(@RequestParam("multipartFiles") MultipartFile[] multipartFiles) {
+        return wmMaterialService.batchUploadPictures(multipartFiles);
     }
 }

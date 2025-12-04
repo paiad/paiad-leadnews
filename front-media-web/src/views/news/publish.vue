@@ -148,6 +148,14 @@
           </div>
         </el-form-item>
 
+        <el-form-item v-if="form.type === 0" label="封面预览">
+           <div class="image-selector-container">
+             <div class="image-selector">
+                <img src="https://cdn.jsdelivr.net/gh/paiad/picture-bed@main/img/no-img.png" class="selected-image" />
+             </div>
+           </div>
+        </el-form-item>
+
         <el-form-item v-if="form.type > 0" label="选择图片">
            <div class="image-selector-container">
              <div v-for="(_, index) in imageCount" :key="index" class="relative group">

@@ -6,10 +6,7 @@ export function getMaterialList(data: WmMaterialDto) {
   return request({
     url: '/api/v1/material/list',
     method: 'post',
-    data: {
-      ...data,
-      page: data.page > 0 ? data.page - 1 : 0
-    }
+    data: data
   }).then((res: any) => {
     console.log('[API] getMaterialList response:', res)
     return res
@@ -49,6 +46,33 @@ export function deleteMaterial(id: number) {
     method: 'delete'
   }).then((res: any) => {
     console.log('[API] deleteMaterial response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}
+
+export function batchDeleteMaterial(ids: number[]) {
+  console.log('[API] batchDeleteMaterial request:', ids)
+  return request({
+    url: '/api/v1/material/del/batch',
+    method: 'post',
+    data: ids
+  }).then((res: any) => {
+    console.log('[API] batchDeleteMaterial response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}
+
+export function batchUploadPictures(data: FormData) {
+  console.log('[API] batchUploadPictures request')
+  return request({
+    url: '/api/v1/material/upload_pictures',
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  }).then((res: any) => {
+    console.log('[API] batchUploadPictures response:', res)
     return res
   }) as unknown as Promise<ResponseResult>
 }
