@@ -8,7 +8,7 @@
       <el-form :inline="false" :model="queryParams">
         <!-- 第一行：状态选择 -->
         <el-form-item label="状态" class="status-form-item">
-          <el-radio-group v-model="queryParams.status" class="status-radio-group">
+          <el-radio-group v-model="queryParams.status" class="status-radio-group" @change="handleSearch">
             <el-radio-button :label="null">全部状态</el-radio-button>
             <el-radio-button :label="0">草稿</el-radio-button>
             <el-radio-button :label="1">已提交</el-radio-button>
@@ -21,10 +21,10 @@
         <!-- 第二行：其他筛选条件 -->
         <div class="filter-row">
           <el-form-item label="关键字" class="filter-item">
-            <el-input v-model="queryParams.keyword" placeholder="搜索标题" clearable style="width: 200px;" />
+            <el-input v-model="queryParams.keyword" placeholder="搜索标题" clearable style="width: 200px;" @change="handleSearch" />
           </el-form-item>
           <el-form-item label="频道" class="filter-item">
-            <el-select v-model="queryParams.channelId" placeholder="全部频道" clearable filterable style="width: 180px;">
+            <el-select v-model="queryParams.channelId" placeholder="全部频道" clearable filterable style="width: 180px;" @change="handleSearch">
               <el-option v-for="channel in channels" :key="channel.id" :label="channel.name" :value="channel.id" />
             </el-select>
           </el-form-item>
@@ -35,6 +35,7 @@
               placeholder="开始时间"
               value-format="YYYY-MM-DDTHH:mm:ss"
               style="width: 200px;"
+              @change="handleSearch"
             />
             <span class="date-separator">-</span>
             <el-date-picker
@@ -43,10 +44,8 @@
               placeholder="结束时间"
               value-format="YYYY-MM-DDTHH:mm:ss"
               style="width: 200px;"
+              @change="handleSearch"
             />
-          </el-form-item>
-          <el-form-item class="filter-item">
-            <el-button type="primary" @click="handleSearch" class="search-button">搜索</el-button>
           </el-form-item>
         </div>
       </el-form>
@@ -54,23 +53,43 @@
 
     <div v-loading="loading" class="table-container">
       <el-table :data="newsList" style="width: 100%" :header-cell-style="{ background: '#f5f5f7', color: '#86868b', fontWeight: '500' }">
-        <el-table-column prop="title" label="标题" min-width="200" />
-        <el-table-column label="封面" width="100">
+        <el-table-column label="标题" min-width="300">
+          <template #header>
+            <div style="padding-left: 39px;">标题</div>
+          </template>
           <template #default="scope">
-            <el-image
-              v-if="scope.row.images"
-              :src="getImageUrl(scope.row.images.split(',')[0])"
-              class="cover-image"
-            />
-            <span v-else class="no-image">无图</span>
+            <div class="title-cell">
+              <el-image
+                v-if="scope.row.images"
+                :src="getImageUrl(scope.row.images.split(',')[0])"
+                class="title-cover-image"
+                fit="cover"
+              >
+                <template #error>
+                  <div class="image-error">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </template>
+              </el-image>
+              <div v-else class="title-cover-placeholder">
+                <i class="el-icon-picture-outline"></i>
+              </div>
+              <div class="title-text">{{ scope.row.title }}</div>
+            </div>
           </template>
         </el-table-column>
         <el-table-column label="状态" width="120">
+          <template #header>
+            <div style="padding-left: 16px;">状态</div>
+          </template>
           <template #default="scope">
             <el-tag :type="getStatusType(scope.row.status)" effect="plain" round>{{ getStatusLabel(scope.row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="publishTime" label="发布时间" width="180">
+            <template #header>
+              <div style="padding-left: 16px;">发布时间</div>
+            </template>
             <template #default="scope">
                 {{ formatDate(scope.row.publishTime) }}
             </template>
@@ -104,7 +123,6 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getNewsList } from '@/api/news'
 import { getChannels } from '@/api/channel'
-import { Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -294,6 +312,9 @@ onMounted(() => {
     }
     
     .status-radio-group {
+      display: flex;
+      gap: 8px;
+      
       :deep(.el-radio-button__inner) {
         padding: 8px 20px;
         border-radius: 6px;
@@ -364,16 +385,57 @@ onMounted(() => {
   overflow: hidden;
   padding-bottom: 20px;
   
-  .cover-image {
-    width: 60px;
-    height: 40px;
-    border-radius: 4px;
-    object-fit: cover;
-  }
-  
-  .no-image {
-    font-size: 12px;
-    color: #86868b;
+  .title-cell {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding-left: 16px;
+    
+    .title-cover-image {
+      flex-shrink: 0;
+      width: 80px;
+      height: 60px;
+      border-radius: 6px;
+      overflow: hidden;
+      background-color: #f5f5f7;
+    }
+    
+    .title-cover-placeholder {
+      flex-shrink: 0;
+      width: 80px;
+      height: 60px;
+      border-radius: 6px;
+      background-color: #f5f5f7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #c0c4cc;
+      font-size: 24px;
+    }
+    
+    .image-error {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f5f7;
+      color: #c0c4cc;
+      font-size: 24px;
+    }
+    
+    .title-text {
+      flex: 1;
+      font-size: 14px;
+      color: #1d1d1f;
+      line-height: 1.5;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
   }
   
   .edit-link {
