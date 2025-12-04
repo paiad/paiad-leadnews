@@ -327,6 +327,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         return ResponseResult.okResult(wmNews);
     }
 
+    @Autowired
+    private com.paiad.apis.article.IArticleClient articleClient;
+
     /**
      * 删除文章
      * 
@@ -352,8 +355,9 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         }
 
         // 4.判断文章状态，已发布的文章不能删除
-        if (wmNews.getStatus().equals(WmNews.Status.PUBLISHED.getCode())) {
-            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "已发布的文章不能删除");
+        if (wmNews.getStatus().equals(WmNews.Status.PUBLISHED.getCode()) && wmNews.getArticleId() != null) {
+            // 删除APP端文章
+            articleClient.deleteArticle(wmNews.getArticleId());
         }
 
         // 5.删除文章与素材的关系

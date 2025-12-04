@@ -10,17 +10,27 @@ public interface ApArticleService extends IService<ApArticle> {
 
     /**
      * 加载文章列表
+     * 
      * @param dto
-     * @param type  1 加载更多   2 加载最新
+     * @param type 1 加载更多 2 加载最新
      * @return
      */
     public ResponseResult load(ArticleHomeDto dto, Short type);
 
     /**
      * 保存app端相关文章
+     * 
      * @param dto
      * @return
      */
     public ResponseResult saveArticle(ArticleDto dto);
+
+    /**
+     * 删除文章
+     * 
+     * @param id
+     * @return
+     */
+    public ResponseResult deleteArticle(Long id);
 
 }

@@ -135,7 +135,7 @@
           background
           small
           @size-change="handleSizeChange"
-          @current-change="loadNews"
+          @current-change="handleCurrentChange"
         />
       </div>
     </div>
@@ -239,17 +239,13 @@ const loadNews = async () => {
         fileHost.value = res.host
       }
       
-      if (res.data) {
-        if (res.data.rows && Array.isArray(res.data.rows)) {
-          newsList.value = res.data.rows
-          total.value = res.data.total || 0
-        } else if (Array.isArray(res.data)) {
-          newsList.value = res.data
-          total.value = res.data.length
-        } else {
-          newsList.value = []
-          total.value = 0
-        }
+      // PageResponseResult 结构：
+      // - total 在顶级（res.total）
+      // - data 是文章数组
+      if (res.data && Array.isArray(res.data)) {
+        newsList.value = res.data
+        // total 在响应顶级
+        total.value = (res as any).total || res.data.length
       } else {
         newsList.value = []
         total.value = 0
@@ -308,14 +304,14 @@ const handleSelectionChange = (selection: any[]) => {
 }
 
 const handleDelete = async (row: any) => {
+  let confirmMessage = `确定要删除文章「${row.title}」吗？`
   if (row.status === 9) {
-    ElMessage.warning('已发布的文章不能删除')
-    return
+    confirmMessage = `文章「${row.title}」已发布，删除后将同时删除APP端相关数据，确定要删除吗？`
   }
   
   try {
     await ElMessageBox.confirm(
-      `确定要删除文章「${row.title}」吗？`,
+      confirmMessage,
       '删除确认',
       {
         confirmButtonText: '确定删除',
@@ -370,6 +366,11 @@ const handleBatchDelete = async () => {
       ElMessage.error('批量删除失败')
     }
   }
+}
+
+const handleCurrentChange = (val: number) => {
+  queryParams.page = val
+  loadNews()
 }
 
 onMounted(() => {

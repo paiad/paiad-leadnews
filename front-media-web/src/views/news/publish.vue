@@ -645,7 +645,8 @@ const loadNewsData = async (id: number) => {
       form.labels = data.labels || ''
       tags.value = form.labels ? form.labels.split(',') : []
       form.status = data.status ?? 0
-      form.publishTime = data.publishTime || null
+      // 编辑时默认不回显发布时间，保持为空（即立即发布），除非用户重新选择
+      form.publishTime = null
       
       if (data.images) {
         if (typeof data.images === 'string') {

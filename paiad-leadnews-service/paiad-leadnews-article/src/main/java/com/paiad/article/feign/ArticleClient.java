@@ -20,4 +20,10 @@ public class ArticleClient implements IArticleClient {
     public ResponseResult saveArticle(@RequestBody ArticleDto dto) {
         return apArticleService.saveArticle(dto);
     }
+
+    @PostMapping("/api/v1/article/delete")
+    @Override
+    public ResponseResult deleteArticle(@RequestBody Long id) {
+        return apArticleService.deleteArticle(id);
+    }
 }

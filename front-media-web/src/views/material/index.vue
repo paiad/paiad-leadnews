@@ -18,7 +18,12 @@
       <el-tab-pane label="收藏" name="favorite"></el-tab-pane>
     </el-tabs>
 
-    <div v-loading="loading" class="content-area">
+    <div 
+      class="content-area"
+      v-infinite-scroll="loadMore"
+      :infinite-scroll-disabled="disabled"
+      infinite-scroll-distance="10"
+    >
       <div v-if="materialList.length > 0" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
         <div v-for="item in materialList" :key="item.id" class="material-card group">
           <el-image
@@ -52,24 +57,19 @@
           </div>
         </div>
       </div>
-      <div v-else class="empty-state">
+      <div v-else-if="!loading" class="empty-state">
         <el-icon class="empty-icon"><Picture /></el-icon>
         <p>暂无素材</p>
       </div>
-    </div>
 
-    <div class="pagination-container">
-      <el-pagination
-        v-model:current-page="queryParams.page"
-        v-model:page-size="queryParams.size"
-        :page-sizes="[10, 20, 50]"
-        :total="total"
-        layout="sizes, prev, next"
-        background
-        small
-        @size-change="handleSizeChange"
-        @current-change="loadMaterials"
-      />
+      <div v-if="loading" class="loading-state">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>加载中...</span>
+      </div>
+      
+      <div v-if="noMore && materialList.length > 0" class="no-more-state">
+        <span>没有更多了</span>
+      </div>
     </div>
     
     <!-- 图片预览全屏遮罩 -->
@@ -83,16 +83,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { getMaterialList, uploadPicture, collectMaterial, deleteMaterial } from '@/api/material'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { UploadRequestOptions } from 'element-plus'
-import { Picture, Star, StarFilled, Delete, Close } from '@element-plus/icons-vue'
+import { Picture, Star, StarFilled, Delete, Close, Loading } from '@element-plus/icons-vue'
 
 const previewVisible = ref(false)
 const previewUrl = ref('')
 
 const loading = ref(false)
+const noMore = ref(false)
 const activeTab = ref('all')
 const materialList = ref<any[]>([])
 const total = ref(0)
@@ -103,6 +104,8 @@ const queryParams = reactive({
   size: 20,
   isCollection: 0
 })
+
+const disabled = computed(() => loading.value || noMore.value)
 
 const formatDate = (dateStr: string) => {
   if (!dateStr) return ''
@@ -115,27 +118,43 @@ const getImageUrl = (url: string) => {
   return (fileHost.value || '') + url
 }
 
-const loadMaterials = async () => {
+const loadMaterials = async (isLoadMore = false) => {
+  if (loading.value) return
   loading.value = true
+  
   try {
     const res = await getMaterialList({
       page: queryParams.page,
       size: queryParams.size,
       isCollection: queryParams.isCollection
     })
+    
     if (res.code === 200) {
       if (res.host) {
         fileHost.value = res.host
       }
-      if (Array.isArray(res.data)) {
-         materialList.value = res.data
-         total.value = res.data.length
-      } else if (res.data && Array.isArray(res.data.rows)) {
-         materialList.value = res.data.rows
-         total.value = res.data.total
+      
+      let rows: any[] = []
+      let totalCount = 0
+      
+      if (res.data && Array.isArray(res.data)) {
+        rows = res.data
+        totalCount = (res as any).total || res.data.length
+      }
+      
+      if (isLoadMore) {
+        materialList.value.push(...rows)
       } else {
-         materialList.value = []
-         total.value = 0
+        materialList.value = rows
+      }
+      
+      total.value = totalCount
+      
+      // 判断是否还有更多数据
+      if (materialList.value.length >= total.value) {
+        noMore.value = true
+      } else {
+        noMore.value = false
       }
     }
   } catch (error) {
@@ -146,10 +165,19 @@ const loadMaterials = async () => {
   }
 }
 
+const loadMore = () => {
+  if (!disabled.value) {
+    queryParams.page++
+    loadMaterials(true)
+  }
+}
+
 const handleTabChange = (tab: any) => {
   queryParams.isCollection = tab === 'favorite' ? 1 : 0
   queryParams.page = 1
-  loadMaterials()
+  noMore.value = false
+  materialList.value = []
+  loadMaterials(false)
 }
 
 const handleUpload = async (options: UploadRequestOptions) => {
@@ -159,7 +187,10 @@ const handleUpload = async (options: UploadRequestOptions) => {
     const res = await uploadPicture(formData)
     if (res.code === 200) {
       ElMessage.success('上传成功')
-      loadMaterials()
+      // 重置列表
+      queryParams.page = 1
+      noMore.value = false
+      loadMaterials(false)
     } else {
       ElMessage.error(res.errorMessage || '上传失败')
     }
@@ -174,6 +205,14 @@ const handleCollect = async (item: any) => {
     if (res.code === 200 && res.data) {
       item.isCollection = res.data.isCollection
       ElMessage.success(item.isCollection === 1 ? '已收藏' : '已取消收藏')
+      
+      // 如果在收藏tab下取消收藏，移除该项
+      if (activeTab.value === 'favorite' && item.isCollection === 0) {
+        const index = materialList.value.findIndex(i => i.id === item.id)
+        if (index > -1) {
+          materialList.value.splice(index, 1)
+        }
+      }
     } else {
       ElMessage.error(res.errorMessage || '操作失败')
     }
@@ -193,7 +232,11 @@ const handleDelete = async (id: number) => {
     const res = await deleteMaterial(id)
     if (res.code === 200) {
       ElMessage.success('删除成功')
-      loadMaterials()
+      // 从列表中移除
+      const index = materialList.value.findIndex(item => item.id === id)
+      if (index > -1) {
+        materialList.value.splice(index, 1)
+      }
     } else {
       ElMessage.error(res.errorMessage || '删除失败')
     }
@@ -204,18 +247,13 @@ const handleDelete = async (id: number) => {
   }
 }
 
-const handleSizeChange = () => {
-  queryParams.page = 1
-  loadMaterials()
-}
-
 const handlePreview = (url: string) => {
   previewUrl.value = getImageUrl(url)
   previewVisible.value = true
 }
 
 onMounted(() => {
-  loadMaterials()
+  loadMaterials(false)
 })
 </script>
 
@@ -377,11 +415,14 @@ onMounted(() => {
   }
 }
 
-.pagination-container {
+.loading-state, .no-more-state {
   display: flex;
-  justify-content: flex-end;
-  margin-top: 24px;
-  padding-right: 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 0;
+  color: #86868b;
+  font-size: 14px;
+  gap: 8px;
 }
 
 .preview-overlay {
