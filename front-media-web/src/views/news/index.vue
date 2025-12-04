@@ -2,6 +2,22 @@
   <div class="page-container">
     <div class="page-header">
       <h1 class="page-title">内容管理</h1>
+      <el-button 
+        v-if="!isEditMode"
+        type="default" 
+        @click="enterEditMode"
+        class="manage-btn"
+      >
+        管理
+      </el-button>
+      <el-button 
+        v-else
+        type="primary" 
+        @click="exitEditMode"
+        class="done-btn"
+      >
+        完成
+      </el-button>
     </div>
 
     <div class="filter-card">
@@ -52,10 +68,17 @@
     </div>
 
     <div v-loading="loading" class="table-container">
-      <el-table :data="newsList" style="width: 100%" :header-cell-style="{ background: '#f5f5f7', color: '#86868b', fontWeight: '500' }">
+      <el-table 
+        ref="tableRef"
+        :data="newsList" 
+        style="width: 100%" 
+        :header-cell-style="{ background: '#f5f5f7', color: '#86868b', fontWeight: '500' }"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column v-if="isEditMode" type="selection" width="55" />
         <el-table-column label="标题" min-width="300">
           <template #header>
-            <div style="padding-left: 39px;">标题</div>
+            <div :style="{ paddingLeft: isEditMode ? '0' : '16px' }">标题</div>
           </template>
           <template #default="scope">
             <div class="title-cell">
@@ -97,6 +120,7 @@
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="scope">
             <el-button link type="primary" size="small" @click="handleEdit(scope.row.id)" class="edit-link">编辑</el-button>
+            <el-button link type="danger" size="small" @click="handleDelete(scope.row)" class="delete-link">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -115,15 +139,30 @@
         />
       </div>
     </div>
+
+    <!-- 浮动操作栏 - 仅在编辑模式且有选中项时显示 -->
+    <transition name="slide-up">
+      <div v-if="isEditMode && selectedIds.length > 0" class="floating-action-bar">
+        <div class="selection-info">
+          <span class="selection-count">已选择 {{ selectedIds.length }} 项</span>
+          <el-button link @click="clearSelection" class="clear-btn">取消选择</el-button>
+        </div>
+        <el-button type="danger" @click="handleBatchDelete" class="batch-delete-btn">
+          <el-icon><Delete /></el-icon>
+          批量删除
+        </el-button>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getNewsList } from '@/api/news'
+import { getNewsList, deleteNews, batchDeleteNews } from '@/api/news'
 import { getChannels } from '@/api/channel'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Delete } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const loading = ref(false)
@@ -131,6 +170,9 @@ const newsList = ref<any[]>([])
 const total = ref(0)
 const channels = ref<any[]>([])
 const fileHost = ref('')
+const selectedIds = ref<number[]>([])
+const isEditMode = ref(false)
+const tableRef = ref()
 
 const queryParams = reactive({
   page: 1,
@@ -193,39 +235,26 @@ const loadNews = async () => {
     console.log('[News List] API response:', res)
     
     if (res.code === 200) {
-      // Store host for image URLs
       if (res.host) {
         fileHost.value = res.host
-        console.log('[News List] File host:', fileHost.value)
       }
       
-      // Handle different response structures
       if (res.data) {
-        // Check if data has rows property (paginated response)
         if (res.data.rows && Array.isArray(res.data.rows)) {
           newsList.value = res.data.rows
           total.value = res.data.total || 0
-          console.log('[News List] Loaded rows:', newsList.value.length, 'Total:', total.value)
-        } 
-        // Check if data itself is an array
-        else if (Array.isArray(res.data)) {
+        } else if (Array.isArray(res.data)) {
           newsList.value = res.data
           total.value = res.data.length
-          console.log('[News List] Loaded array:', newsList.value.length)
-        }
-        // Single object or other structure
-        else {
-          console.warn('[News List] Unexpected data structure:', res.data)
+        } else {
           newsList.value = []
           total.value = 0
         }
       } else {
-        console.warn('[News List] No data in response')
         newsList.value = []
         total.value = 0
       }
     } else {
-      console.error('[News List] Error response:', res)
       ElMessage.error(res.errorMessage || '加载内容失败')
       newsList.value = []
       total.value = 0
@@ -254,6 +283,95 @@ const handleEdit = (id: number) => {
   router.push(`/layout/news/publish?id=${id}`)
 }
 
+// 编辑模式控制
+const enterEditMode = () => {
+  isEditMode.value = true
+}
+
+const exitEditMode = () => {
+  isEditMode.value = false
+  selectedIds.value = []
+  if (tableRef.value) {
+    tableRef.value.clearSelection()
+  }
+}
+
+const clearSelection = () => {
+  selectedIds.value = []
+  if (tableRef.value) {
+    tableRef.value.clearSelection()
+  }
+}
+
+const handleSelectionChange = (selection: any[]) => {
+  selectedIds.value = selection.map(item => item.id)
+}
+
+const handleDelete = async (row: any) => {
+  if (row.status === 9) {
+    ElMessage.warning('已发布的文章不能删除')
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除文章「${row.title}」吗？`,
+      '删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    const res = await deleteNews(row.id)
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      loadNews()
+    } else {
+      ElMessage.error(res.errorMessage || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除失败:', error)
+      ElMessage.error('删除失败')
+    }
+  }
+}
+
+const handleBatchDelete = async () => {
+  if (selectedIds.value.length === 0) {
+    ElMessage.warning('请先选择要删除的文章')
+    return
+  }
+  
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${selectedIds.value.length} 篇文章吗？`,
+      '批量删除确认',
+      {
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    )
+    
+    const res = await batchDeleteNews(selectedIds.value)
+    if (res.code === 200) {
+      ElMessage.success('批量删除成功')
+      selectedIds.value = []
+      loadNews()
+    } else {
+      ElMessage.error(res.errorMessage || '批量删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('批量删除失败:', error)
+      ElMessage.error('批量删除失败')
+    }
+  }
+}
+
 onMounted(() => {
   loadChannels()
   loadNews()
@@ -264,6 +382,7 @@ onMounted(() => {
 .page-container {
   max-width: 1200px;
   margin: 0 auto;
+  padding-bottom: 80px; // 为浮动操作栏留出空间
 }
 
 .page-header {
@@ -279,15 +398,26 @@ onMounted(() => {
     margin: 0;
   }
   
-  .action-button {
-    background-color: #000000;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 20px;
+  .manage-btn {
+    border-radius: 8px;
     font-weight: 500;
+    border-color: #e5e5e7;
+    
+    &:hover {
+      border-color: #000000;
+      color: #000000;
+    }
+  }
+  
+  .done-btn {
+    border-radius: 8px;
+    font-weight: 500;
+    background-color: #000000;
+    border-color: #000000;
     
     &:hover {
       background-color: #333333;
+      border-color: #333333;
     }
   }
 }
@@ -365,17 +495,6 @@ onMounted(() => {
       }
     }
   }
-  
-  .search-button {
-    background-color: #000000;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 24px;
-    
-    &:hover {
-      background-color: #333333;
-    }
-  }
 }
 
 .table-container {
@@ -389,7 +508,6 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 20px;
-    padding-left: 16px;
     
     .title-cover-image {
       flex-shrink: 0;
@@ -446,11 +564,78 @@ onMounted(() => {
       color: #004499;
     }
   }
+  
+  .delete-link {
+    color: #f56c6c;
+    font-weight: 500;
+    margin-left: 8px;
+    
+    &:hover {
+      color: #c45656;
+    }
+  }
 }
 
 .pagination-container {
   display: flex;
   justify-content: flex-end;
   padding: 20px 24px 0;
+}
+
+// 浮动操作栏
+.floating-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e5e7;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+  
+  .selection-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .selection-count {
+      font-size: 14px;
+      color: #1d1d1f;
+      font-weight: 500;
+    }
+    
+    .clear-btn {
+      color: #86868b;
+      font-size: 14px;
+      
+      &:hover {
+        color: #0066cc;
+      }
+    }
+  }
+  
+  .batch-delete-btn {
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+// 动画
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
 }
 </style>

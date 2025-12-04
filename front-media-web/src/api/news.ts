@@ -41,3 +41,26 @@ export function submitNews(data: WmNewsDto) {
     return res
   }) as unknown as Promise<ResponseResult>
 }
+
+export function deleteNews(id: number) {
+  console.log('[API] deleteNews request:', id)
+  return request({
+    url: `/api/v1/news/del/${id}`,
+    method: 'delete'
+  }).then((res: any) => {
+    console.log('[API] deleteNews response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}
+
+export function batchDeleteNews(ids: number[]) {
+  console.log('[API] batchDeleteNews request:', ids)
+  return request({
+    url: '/api/v1/news/del/batch',
+    method: 'post',
+    data: ids
+  }).then((res: any) => {
+    console.log('[API] batchDeleteNews response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}

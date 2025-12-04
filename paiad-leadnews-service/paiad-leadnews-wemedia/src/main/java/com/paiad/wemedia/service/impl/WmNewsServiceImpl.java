@@ -299,4 +299,107 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
 
     }
 
+    /**
+     * 根据ID获取文章详情
+     * 
+     * @param id 文章ID
+     * @return
+     */
+    @Override
+    public ResponseResult getNewsById(Integer id) {
+        // 1.检查参数
+        if (id == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.查询文章
+        WmNews wmNews = getById(id);
+        if (wmNews == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "文章不存在");
+        }
+
+        // 3.判断是否是当前用户的文章
+        if (!wmNews.getUserId().equals(WmThreadLocalUtil.getUser().getId())) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "不能查看其他用户的文章");
+        }
+
+        // 4.返回结果
+        return ResponseResult.okResult(wmNews);
+    }
+
+    /**
+     * 删除文章
+     * 
+     * @param id 文章ID
+     * @return
+     */
+    @Override
+    public ResponseResult deleteNews(Integer id) {
+        // 1.检查参数
+        if (id == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.查询文章
+        WmNews wmNews = getById(id);
+        if (wmNews == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "文章不存在");
+        }
+
+        // 3.判断是否是当前用户的文章
+        if (!wmNews.getUserId().equals(WmThreadLocalUtil.getUser().getId())) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "不能删除其他用户的文章");
+        }
+
+        // 4.判断文章状态，已发布的文章不能删除
+        if (wmNews.getStatus().equals(WmNews.Status.PUBLISHED.getCode())) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "已发布的文章不能删除");
+        }
+
+        // 5.删除文章与素材的关系
+        wmNewsMaterialMapper.delete(Wrappers.<WmNewsMaterial>lambdaQuery().eq(WmNewsMaterial::getNewsId, id));
+
+        // 6.删除文章
+        removeById(id);
+
+        // 7.返回结果
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+    }
+
+    /**
+     * 批量删除文章
+     * 
+     * @param ids 文章ID列表
+     * @return
+     */
+    @Override
+    public ResponseResult batchDeleteNews(List<Integer> ids) {
+        // 1.检查参数
+        if (ids == null || ids.isEmpty()) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        // 2.逐个删除文章
+        int successCount = 0;
+        int failCount = 0;
+        for (Integer id : ids) {
+            ResponseResult result = deleteNews(id);
+            if (result.getCode() == AppHttpCodeEnum.SUCCESS.getCode()) {
+                successCount++;
+            } else {
+                failCount++;
+                log.warn("删除文章失败，ID: {}, 原因: {}", id, result.getErrorMessage());
+            }
+        }
+
+        // 3.返回结果
+        if (failCount == 0) {
+            return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
+        } else if (successCount == 0) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_ALLOW, "所有文章删除失败");
+        } else {
+            return ResponseResult.okResult("成功删除 " + successCount + " 篇文章，" + failCount + " 篇删除失败");
+        }
+    }
+
 }
