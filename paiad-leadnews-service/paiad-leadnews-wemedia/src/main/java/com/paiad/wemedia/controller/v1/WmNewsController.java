@@ -48,4 +48,9 @@ public class WmNewsController {
     public ResponseResult batchDeleteNews(@RequestBody List<Integer> ids) {
         return wmNewsService.batchDeleteNews(ids);
     }
+
+    @PostMapping("/down_or_up")
+    public ResponseResult downOrUp(@RequestBody WmNewsDto dto){
+        return wmNewsService.downOrUp(dto);
+    }
 }

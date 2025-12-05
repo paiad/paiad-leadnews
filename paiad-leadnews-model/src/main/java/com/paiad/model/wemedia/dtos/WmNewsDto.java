@@ -69,4 +69,9 @@ public class WmNewsDto {
      */
     @ApiModelProperty(value = "封面图片URL列表")
     private List<String> images;
+
+    /**
+     * 上下架 0 下架  1 上架
+     */
+    private Short enable;
 }

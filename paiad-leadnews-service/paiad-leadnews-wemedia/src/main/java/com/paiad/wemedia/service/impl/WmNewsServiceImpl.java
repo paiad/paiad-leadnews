@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.paiad.apis.article.IArticleClient;
 import com.paiad.common.constants.WemediaConstants;
+import com.paiad.common.constants.WmNewsMessageConstants;
 import com.paiad.common.exception.CustomException;
 import com.paiad.model.common.dtos.PageResponseResult;
 import com.paiad.model.common.dtos.ResponseResult;
@@ -27,15 +29,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -166,7 +167,7 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
      * 1，如果内容图片大于等于1，小于3 单图 type 1
      * 2，如果内容图片大于等于3 多图 type 3
      * 3，如果内容没有图片，无图 type 0
-     *
+     * <p>
      * 第二个功能：保存封面图片与素材的关系
      *
      * @param dto
@@ -332,8 +333,8 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         return ResponseResult.okResult(wmNews);
     }
 
-    @Autowired
-    private com.paiad.apis.article.IArticleClient articleClient;
+    @Resource
+    private IArticleClient articleClient;
 
     /**
      * 删除文章
@@ -409,6 +410,50 @@ public class WmNewsServiceImpl extends ServiceImpl<WmNewsMapper, WmNews> impleme
         } else {
             return ResponseResult.okResult("成功删除 " + successCount + " 篇文章，" + failCount + " 篇删除失败");
         }
+    }
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    /**
+     * 文章的上下架
+     *
+     * @param dto
+     * @return
+     */
+    @Override
+    public ResponseResult downOrUp(WmNewsDto dto) {
+        //1.检查参数
+        if (dto.getId() == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID);
+        }
+
+        //2.查询文章
+        WmNews wmNews = getById(dto.getId());
+        if (wmNews == null) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.DATA_NOT_EXIST, "文章不存在");
+        }
+
+        //3.判断文章是否已发布
+        if (!wmNews.getStatus().equals(WmNews.Status.PUBLISHED.getCode())) {
+            return ResponseResult.errorResult(AppHttpCodeEnum.PARAM_INVALID, "当前文章不是发布状态，不能上下架");
+        }
+
+        //4.修改文章enable
+        if (dto.getEnable() != null && dto.getEnable() > -1 && dto.getEnable() < 2) {
+            update(Wrappers.<WmNews>lambdaUpdate().set(WmNews::getEnable, dto.getEnable())
+                    .eq(WmNews::getId, wmNews.getId()));
+
+            if (wmNews.getArticleId() != null) {
+                //发送消息，通知article修改文章的配置
+                Map<String, Object> map = new HashMap<>();
+                map.put("articleId", wmNews.getArticleId());
+                map.put("enable", dto.getEnable());
+                kafkaTemplate.send(WmNewsMessageConstants.WM_NEWS_UP_OR_DOWN_TOPIC, JSON.toJSONString(map));
+            }
+
+        }
+        return ResponseResult.okResult(AppHttpCodeEnum.SUCCESS);
     }
 
 }

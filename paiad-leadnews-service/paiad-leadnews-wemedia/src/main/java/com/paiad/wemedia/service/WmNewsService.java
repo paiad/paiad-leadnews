@@ -12,7 +12,7 @@ public interface WmNewsService extends IService<WmNews> {
 
     /**
      * 条件查询文章列表
-     * 
+     *
      * @param dto
      * @return
      */
@@ -20,7 +20,7 @@ public interface WmNewsService extends IService<WmNews> {
 
     /**
      * 发布修改文章或保存为草稿
-     * 
+     *
      * @param dto
      * @return
      */
@@ -28,7 +28,7 @@ public interface WmNewsService extends IService<WmNews> {
 
     /**
      * 根据ID获取文章详情
-     * 
+     *
      * @param id 文章ID
      * @return
      */
@@ -36,7 +36,7 @@ public interface WmNewsService extends IService<WmNews> {
 
     /**
      * 删除文章
-     * 
+     *
      * @param id 文章ID
      * @return
      */
@@ -44,10 +44,17 @@ public interface WmNewsService extends IService<WmNews> {
 
     /**
      * 批量删除文章
-     * 
+     *
      * @param ids 文章ID列表
      * @return
      */
     public ResponseResult batchDeleteNews(List<Integer> ids);
+
+    /**
+     * 文章的上下架
+     * @param dto
+     * @return
+     */
+    public ResponseResult downOrUp(WmNewsDto dto);
 
 }
