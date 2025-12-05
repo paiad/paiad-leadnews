@@ -15,7 +15,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@MapperScan("com.paiad.wemedia.mapper")
 @EnableFeignClients(basePackages = "com.paiad.apis")
 @EnableAsync  //开启异步调用
 @EnableScheduling
