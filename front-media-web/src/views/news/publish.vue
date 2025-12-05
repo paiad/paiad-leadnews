@@ -3,6 +3,7 @@
     <!-- 页面标题 -->
     <header class="mb-8 flex items-center gap-4">
       <button 
+        v-if="isEdit"
         type="button" 
         class="back-btn"
         @click="router.back()"

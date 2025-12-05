@@ -12,12 +12,20 @@ import './style.css'
 const app = createApp(App)
 
 app.config.errorHandler = (err) => {
+  // 忽略 ResizeObserver 警告，这是浏览器的正常行为
+  if (err instanceof Error && err.message.includes('ResizeObserver')) {
+    return
+  }
   console.error(err)
-  alert('Runtime Error: ' + err)
 }
 
 window.onerror = (msg, _source, _lineno, _colno, _error) => {
-  alert('Global Error: ' + msg)
+  // 忽略 ResizeObserver 警告
+  if (typeof msg === 'string' && msg.includes('ResizeObserver')) {
+    return true
+  }
+  console.error('Global Error:', msg)
+  return false
 }
 
 app.use(createPinia())

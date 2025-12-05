@@ -5,7 +5,7 @@
       <div class="header-actions">
         <el-button type="primary" class="action-button" @click="handleAdd">
           <el-icon><Plus /></el-icon>
-          新增频道
+          <span style="padding-left: 3px;">新增频道</span>
         </el-button>
       </div>
     </div>
@@ -34,19 +34,7 @@
       </div>
     </div>
 
-    <!-- 分页器 -->
-    <div class="pagination-container" v-if="total > 0">
-      <el-pagination
-        v-model:current-page="queryParams.page"
-        v-model:page-size="queryParams.size"
-        :page-sizes="[10, 20, 50, 100]"
-        :total="total"
-        layout="total, sizes, prev, pager, next"
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+
 
     <!-- 新增/编辑弹窗 -->
     <el-dialog
@@ -98,7 +86,7 @@ const total = ref(0)
 
 const queryParams = reactive({
   page: 1,
-  size: 10,
+  size: 1000,
   name: ''
 })
 
@@ -157,16 +145,7 @@ const loadChannels = async () => {
   }
 }
 
-const handleSizeChange = (val: number) => {
-  queryParams.size = val
-  queryParams.page = 1
-  loadChannels()
-}
 
-const handleCurrentChange = (val: number) => {
-  queryParams.page = val
-  loadChannels()
-}
 
 const resetForm = () => {
   formData.id = undefined
@@ -270,9 +249,9 @@ onMounted(() => {
   .action-button {
     background-color: #000000;
     border: none;
-    border-radius: 20px;
-    padding: 8px 20px;
-    font-weight: 500;
+    border-radius: 16px;
+    padding: 8px 16px;
+    font-weight: 555;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -319,11 +298,7 @@ onMounted(() => {
   }
 }
 
-.pagination-container {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
-}
+
 
 .custom-dialog {
   :deep(.el-dialog__header) {

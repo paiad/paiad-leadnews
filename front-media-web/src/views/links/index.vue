@@ -24,7 +24,31 @@
             <el-icon class="arrow-icon"><ArrowRight /></el-icon>
           </a>
           <a href="http://localhost:5173/login" target="_blank" class="link-item">
-            <span class="link-label">Paiad Platform</span>
+            <span class="link-label">𝑷𝒂𝒊𝒂𝒅 𝑳𝒆𝒂𝒅𝒏𝒆𝒘𝒔</span>
+            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+          </a>
+        </div>
+      </div>
+
+            <!-- Knife4j Doc -->
+      <div class="link-card">
+        <div class="card-header">
+          <div class="icon-wrapper purple">
+            <el-icon><Document /></el-icon>
+          </div>
+          <h2>Knife4j 接口文档</h2>
+        </div>
+        <div class="card-content">
+          <a href="http://localhost:51801/doc.html" target="_blank" class="link-item">
+            <span class="link-label">用户接口文档</span>
+            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+          </a>
+          <a href="http://localhost:51802/doc.html" target="_blank" class="link-item">
+            <span class="link-label">文章接口文档</span>
+            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
+          </a>
+          <a href="http://localhost:51803/doc.html" target="_blank" class="link-item">
+            <span class="link-label">媒体接口文档</span>
             <el-icon class="arrow-icon"><ArrowRight /></el-icon>
           </a>
         </div>
@@ -57,30 +81,6 @@
         <div class="card-content">
           <a href="http://localhost:9000/" target="_blank" class="link-item">
             <span class="link-label">对象存储控制台</span>
-            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-          </a>
-        </div>
-      </div>
-
-      <!-- Knife4j Doc -->
-      <div class="link-card">
-        <div class="card-header">
-          <div class="icon-wrapper purple">
-            <el-icon><Document /></el-icon>
-          </div>
-          <h2>Knife4j 接口文档</h2>
-        </div>
-        <div class="card-content">
-          <a href="http://localhost:51801/doc.html" target="_blank" class="link-item">
-            <span class="link-label">用户接口文档</span>
-            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-          </a>
-          <a href="http://localhost:51802/doc.html" target="_blank" class="link-item">
-            <span class="link-label">文章接口文档</span>
-            <el-icon class="arrow-icon"><ArrowRight /></el-icon>
-          </a>
-          <a href="http://localhost:51803/doc.html" target="_blank" class="link-item">
-            <span class="link-label">媒体接口文档</span>
             <el-icon class="arrow-icon"><ArrowRight /></el-icon>
           </a>
         </div>

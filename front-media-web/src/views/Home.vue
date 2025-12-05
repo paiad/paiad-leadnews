@@ -1,7 +1,7 @@
 <template>
   <div class="page-container">
     <div class="welcome-section">
-      <h1 class="welcome-title">欢迎来到 Paiad 自媒体平台</h1>
+      <h1 class="welcome-title">欢迎来到 `𝑳𝒆𝒂𝒅𝒏𝒆𝒘𝒔` 自媒体平台</h1>
       <p class="welcome-subtitle">一站式管理您的内容和素材</p>
     </div>
     
