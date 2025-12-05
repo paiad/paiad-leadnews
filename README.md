@@ -1,8 +1,8 @@
 # Paiad Leadnews
-
 > 基于 Spring Cloud Alibaba 微服务架构的分布式内容分发平台
-
 Paiad Leadnews 是一个全栈式的内容管理与分发系统，集成了用户端（App）、自媒体端（Wemedia）和管理端（Admin）。项目采用现代化的微服务架构设计，具备高性能、高可用和易扩展的特性。
+
+![媒体端预览图片](https://cdn.jsdelivr.net/gh/paiad/picture-bed@main/img/front-media-web-img.png)
 
 ## 🏗 核心架构
 
@@ -34,7 +34,6 @@ Paiad Leadnews 是一个全栈式的内容管理与分发系统，集成了用�
 | **持久层**    | MyBatis Plus            | 3.4.1         |
 | **数据库**    | MySQL 5.7 / MongoDB 4.0 | -             |
 | **缓存/消息** | Redis 5.0 / Kafka 2.5.1 | -             |
-| **搜索引擎**  | ElasticSearch           | 7.x           |
 | **工具支持**  | Lombok, Knife4j, HanLP  | -             |
 
 ## 🚀 快速启动指南
@@ -42,18 +41,18 @@ Paiad Leadnews 是一个全栈式的内容管理与分发系统，集成了用�
 ### 前置要求
 
 确保本地或服务器已安装并启动以下基础设施（推荐使用根目录下的 `docker-compose.yml`）：
-
+> 建议：安装 Docker Desktop，然后在项目根目录下执行 `docker compose up -d`
 - MySQL (3306)
 - Redis (6379)
 - Nacos (8848)
 - Kafka (9092) & Zookeeper (2181)
-- MinIO (9000/9001)
+- MinIO (9000)
 - ElasticSearch (9200)
 
 ### 启动步骤
 
-1. **初始化数据库**: 导入 `/sql` 目录下的初始化脚本。
-2. **配置 Nacos**: 导入 `/nacos_config` 中的配置文件，并修改数据库/Redis 连接信息。
+1. **初始化数据库**: 导入 `/base_config/datebase` 目录下的初始化脚本。
+2. **配置 Nacos**: 导入 `/base_config/nacos_config` 中的配置文件，并修改数据库/Redis 连接信息。
 3. **启动微服务**:
    建议按以下顺序启动：
    - `LeadnewsGatewayApplication` (网关)
