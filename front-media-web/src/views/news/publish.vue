@@ -16,7 +16,7 @@
         class="publish-form"
       >
         <!-- 标题 -->
-        <el-form-item label="标题" prop="title">
+        <el-form-item prop="title" class="title-item">
           <el-input
             v-model="form.title"
             placeholder="请输入文章标题"
@@ -399,24 +399,40 @@ onMounted(() => {
   font-size: 14px;
 }
 
+.title-item {
+  margin-bottom: 32px;
+}
+
+/* 标题输入框特定样式 */
 .custom-input :deep(.el-input__wrapper) {
-  background-color: #f5f5f7;
-  box-shadow: none;
-  border: 1px solid #e5e5e7;
-  border-radius: 12px;
-  padding: 8px 16px;
-  height: 48px;
-  transition: all 0.2s ease;
+  background-color: transparent;
+  box-shadow: none !important;
+  border: none;
+  border-bottom: 2px solid #e5e5e7;
+  border-radius: 0;
+  padding: 8px 0;
+  height: auto;
+  transition: all 0.3s ease;
 }
 
 .custom-input :deep(.el-input__wrapper.is-focus) {
-  background-color: white;
-  box-shadow: 0 0 0 2px #000000 inset !important;
+  background-color: transparent;
+  box-shadow: none !important;
+  border-bottom-color: #1d1d1f;
 }
 
-.custom-input :deep(input) {
-  font-size: 16px;
+.custom-input :deep(.el-input__inner) {
+  font-size: 28px;
+  font-weight: 600;
   color: #1d1d1f;
+  height: 50px;
+  line-height: 50px;
+  padding: 0;
+}
+
+.custom-input :deep(.el-input__inner::placeholder) {
+  color: #86868b;
+  font-weight: 500;
 }
 
 .custom-select :deep(.el-input__wrapper) {
