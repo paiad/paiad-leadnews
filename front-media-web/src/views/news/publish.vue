@@ -422,7 +422,7 @@ onMounted(() => {
 }
 
 .custom-input :deep(.el-input__inner) {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 600;
   color: #1d1d1f;
   height: 50px;
