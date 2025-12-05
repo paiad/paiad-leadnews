@@ -1,8 +1,15 @@
 <template>
   <div class="max-w-300 mx-auto animate-fade-in">
     <!-- 页面标题 -->
-    <header class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900 tracking-tight">{{ isEdit ? '编辑文章' : '发布文章' }}</h1>
+    <header class="mb-8 flex items-center gap-4">
+      <button 
+        type="button" 
+        class="back-btn"
+        @click="router.back()"
+      >
+        <el-icon :size="20"><ArrowLeft /></el-icon>
+      </button>
+      <h1 class="text-2xl font-bold text-gray-900 tracking-tight m-0">{{ isEdit ? '编辑文章' : '发布文章' }}</h1>
     </header>
 
     <!-- 表单卡片 -->
@@ -85,6 +92,14 @@
           </el-form-item>
         </div>
 
+        <!-- 上下架状态（仅编辑已发布文章时显示） -->
+        <el-form-item v-if="showShelfStatus" label="上下架状态">
+          <el-tag :type="form.enable === 1 ? 'success' : 'info'" effect="light">
+            {{ form.enable === 1 ? '已上架' : '已下架' }}
+          </el-tag>
+          <span class="text-xs text-gray-400 ml-2">上下架操作请在内容管理页面进行</span>
+        </el-form-item>
+
         <!-- 操作按钮 -->
         <div class="mt-12 flex justify-end gap-4">
           <button type="button" class="btn-secondary" @click="handleSubmit(false)">
@@ -115,6 +130,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { getChannels } from '@/api/channel'
 import { submitNews, getNewsDetail } from '@/api/news'
 import { ElMessage } from 'element-plus'
+import { ArrowLeft } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import type { ContentBlock, CoverType } from '@/types/publish'
 import type { ChannelOption } from '@/types/news'
@@ -156,8 +172,12 @@ const form = reactive({
   labels: '',
   images: [] as string[],
   status: 0,
-  publishTime: null as string | null
+  publishTime: null as string | null,
+  enable: 1 as number // 上下架状态：1=上架, 0=下架
 })
+
+// 是否显示上下架状态（仅编辑已发布文章时显示）
+const showShelfStatus = computed(() => isEdit.value && form.status === 9)
 
 // 同步标签到 form.labels
 watch(tags, (newVal) => {
@@ -325,6 +345,7 @@ const loadNewsData = async (id: number) => {
       form.labels = data.labels || ''
       tags.value = form.labels ? form.labels.split(',') : []
       form.status = data.status ?? 0
+      form.enable = data.enable ?? 1
       form.publishTime = null
 
       if (data.images) {
@@ -494,5 +515,24 @@ onMounted(() => {
 
 .btn-primary:active {
   transform: scale(0.98);
+}
+
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #e5e5e7;
+  background: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: #1d1d1f;
+}
+
+.back-btn:hover {
+  background: #f5f5f7;
+  border-color: #1d1d1f;
 }
 </style>

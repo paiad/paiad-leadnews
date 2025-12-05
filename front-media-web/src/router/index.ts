@@ -43,6 +43,11 @@ const router = createRouter({
           component: () => import('@/views/news/publish.vue')
         },
         {
+          path: 'news/edit',
+          name: 'news-edit',
+          component: () => import('@/views/news/publish.vue')
+        },
+        {
           path: 'links',
           name: 'links',
           component: () => import('@/views/links/index.vue')

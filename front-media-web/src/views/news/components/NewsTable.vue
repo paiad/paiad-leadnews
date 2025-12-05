@@ -32,6 +32,22 @@
         </template>
       </el-table-column>
 
+      <!-- 上下架列 -->
+      <el-table-column label="上下架" width="80" align="center">
+        <template #default="{ row }">
+          <el-switch
+            v-if="row.status === 9"
+            v-model="row.enable"
+            :active-value="1"
+            :inactive-value="0"
+            @change="$emit('toggle-enable', row)"
+          />
+          <el-icon v-else class="text-gray-300" :size="20">
+            <Remove />
+          </el-icon>
+        </template>
+      </el-table-column>
+
       <!-- 发布时间列 -->
       <el-table-column label="发布时间" width="180">
         <template #header>
@@ -108,6 +124,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { Remove } from '@element-plus/icons-vue'
 import type { NewsItem } from '@/types/news'
 import { getStatusLabel, getStatusType, formatDate } from '@/utils/format'
 import NewsTitleCell from './NewsTitleCell.vue'
@@ -129,6 +146,7 @@ interface Emits {
   (e: 'page-change', page: number): void
   (e: 'size-change', size: number): void
   (e: 'toggle-edit-mode'): void
+  (e: 'toggle-enable', row: NewsItem): void
 }
 
 const props = defineProps<Props>()

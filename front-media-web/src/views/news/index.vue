@@ -28,6 +28,7 @@
       @page-change="handlePageChange"
       @size-change="handleSizeChange"
       @toggle-edit-mode="toggleEditMode"
+      @toggle-enable="handleToggleEnable"
     />
 
     <!-- 浮动操作栏 -->
@@ -43,8 +44,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { useNewsList } from '@/composables/news/useNewsList'
 import { useNewsSelection } from '@/composables/news/useNewsSelection'
+import { downOrUp } from '@/api/news'
 import { NewsStatus } from '@/types/news'
 import type { NewsItem } from '@/types/news'
 import NewsFilter from './components/NewsFilter.vue'
@@ -106,7 +109,7 @@ const handleSizeChange = (size: number) => {
  * 编辑文章
  */
 const handleEdit = (id: number) => {
-  router.push(`/layout/news/publish?id=${id}`)
+  router.push(`/layout/news/edit?id=${id}`)
 }
 
 /**
@@ -114,6 +117,26 @@ const handleEdit = (id: number) => {
  */
 const handleDelete = async (row: NewsItem) => {
   await removeNews(row.id, row.title, row.status === NewsStatus.PUBLISHED)
+}
+
+/**
+ * 上下架切换
+ */
+const handleToggleEnable = async (row: NewsItem) => {
+  try {
+    const res = await downOrUp(row.id, row.enable ?? 1)
+    if (res.code === 200) {
+      ElMessage.success(row.enable === 1 ? '上架成功' : '下架成功')
+    } else {
+      // 失败时回滚状态
+      row.enable = row.enable === 1 ? 0 : 1
+      ElMessage.error(res.errorMessage || '操作失败')
+    }
+  } catch (error) {
+    // 失败时回滚状态
+    row.enable = row.enable === 1 ? 0 : 1
+    ElMessage.error('操作失败')
+  }
 }
 
 /**

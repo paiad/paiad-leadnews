@@ -34,6 +34,7 @@ export interface NewsItem {
   images?: string
   publishTime?: string
   channelId?: number
+  enable?: number // 1=上架, 0=下架
 }
 
 /**

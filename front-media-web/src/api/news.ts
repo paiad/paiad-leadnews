@@ -61,3 +61,15 @@ export function batchDeleteNews(ids: number[]) {
     return res
   }) as unknown as Promise<ResponseResult>
 }
+
+export function downOrUp(id: number, enable: number) {
+  console.log('[API] downOrUp request:', { id, enable })
+  return request({
+    url: '/api/v1/news/down_or_up',
+    method: 'post',
+    data: { id, enable }
+  }).then((res: any) => {
+    console.log('[API] downOrUp response:', res)
+    return res
+  }) as unknown as Promise<ResponseResult>
+}
