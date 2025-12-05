@@ -50,6 +50,7 @@ public class WmNewsController {
     }
 
     @PostMapping("/down_or_up")
+    @ApiOperation("上下架文章")
     public ResponseResult downOrUp(@RequestBody WmNewsDto dto){
         return wmNewsService.downOrUp(dto);
     }
