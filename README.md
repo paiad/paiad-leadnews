@@ -1,4 +1,4 @@
-# Paiad Leadnews
+# 𝑷𝒂𝒊𝒂𝒅 𝑳𝒆𝒂𝒅𝒏𝒆𝒘𝒔
 > 基于 Spring Cloud Alibaba 微服务架构的分布式内容分发平台
 Paiad Leadnews 是一个全栈式的内容管理与分发系统，集成了用户端（App）、自媒体端（Wemedia）和管理端（Admin）。项目采用现代化的微服务架构设计，具备高性能、高可用和易扩展的特性。
 
