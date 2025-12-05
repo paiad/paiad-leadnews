@@ -1,7 +1,10 @@
 <template>
   <el-container class="layout-container">
     <el-aside width="240px" class="aside">
-      <div class="logo">𝑷𝒂𝒊𝒂𝒅 𝑳𝒆𝒂𝒅𝒏𝒆𝒘𝒔</div>
+      <div class="logo">
+        <el-avatar :size="26" src="https://cdn.jsdelivr.net/gh/paiad/picture-bed@main/icon/sunflower.svg" class="logo-avatar"/>
+        <span>𝑷𝒂𝒊𝒂𝒅 𝑳𝒆𝒂𝒅𝒏𝒆𝒘𝒔</span>
+      </div>
       <el-menu
         :default-active="activeMenu"
         class="el-menu-vertical"
@@ -39,7 +42,7 @@
       <el-header class="header">
         <div class="header-content">
           <div class="user-info">
-            <el-avatar :size="24" :src="userStore.user.image" class="user-avatar">
+            <el-avatar :size="26" :src="userStore.user.image" class="user-avatar">
               <span>{{ (userStore.user.nickname || '用户').charAt(0) }}</span>
             </el-avatar>
             <span class="username">{{ userStore.user.nickname || '用户' }}</span>
@@ -85,11 +88,19 @@ const logout = () => {
   
   .logo {
     height: 64px;
-    line-height: 64px;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     font-size: 18px;
     font-weight: 600;
     color: #1d1d1f;
+    
+    .logo-avatar {
+      background-color: #ffffff;
+      border: 1px solid #e5e5e7;
+      flex-shrink: 0;
+    }
   }
   
   .el-menu-vertical {
