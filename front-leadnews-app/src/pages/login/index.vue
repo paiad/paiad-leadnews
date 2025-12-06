@@ -81,7 +81,7 @@ import UniIcons from '@dcloudio/uni-ui/lib/uni-icons/uni-icons.vue'
 
 // Form data
 const form = reactive({
-  phone: '16666666666',
+  phone: '13511223456',
   password: 'admin'
 })
 
