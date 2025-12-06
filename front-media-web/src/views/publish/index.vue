@@ -136,10 +136,10 @@ import type { FormInstance } from 'element-plus'
 import type { ContentBlock, CoverType } from '@/types/publish'
 import type { ChannelOption } from '@/types/news'
 import { useMaterialPicker } from '@/composables/news/useMaterialPicker'
-import ContentEditor from './components/ContentEditor.vue'
-import CoverSelector from './components/CoverSelector.vue'
-import TagInput from './components/TagInput.vue'
-import MaterialDialog from './components/MaterialDialog.vue'
+import ContentEditor from '@/components/news/ContentEditor.vue'
+import CoverSelector from '@/components/news/CoverSelector.vue'
+import TagInput from '@/components/news/TagInput.vue'
+import MaterialDialog from '@/components/news/MaterialDialog.vue'
 
 const route = useRoute()
 const router = useRouter()

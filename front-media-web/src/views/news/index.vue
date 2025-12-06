@@ -50,9 +50,9 @@ import { useNewsSelection } from '@/composables/news/useNewsSelection'
 import { downOrUp } from '@/api/news'
 import { NewsStatus } from '@/types/news'
 import type { NewsItem } from '@/types/news'
-import NewsFilter from './components/NewsFilter.vue'
-import NewsTable from './components/NewsTable.vue'
-import FloatingActionBar from './components/FloatingActionBar.vue'
+import NewsFilter from '@/components/news/NewsFilter.vue'
+import NewsTable from '@/components/news/NewsTable.vue'
+import FloatingActionBar from '@/components/news/FloatingActionBar.vue'
 
 const router = useRouter()
 const tableRef = ref()
